@@ -10,3 +10,7 @@ a line under **Unreleased** in the same commit.
 
 ### Changed
 - New typography, the same as Hadron's: Inter Tight for the interface and headings and Unbounded for the Positron wordmark replace the serif titles and IBM Plex Sans. Code and monospace text use IBM Plex Mono. The fonts are bundled in the app.
+
+### Fixed
+- Custom HTML blocks on the Activity board follow the app's current theme, so their text stays readable in light and dark.
+- The Activity page no longer slides sideways and cuts off its left edge.
