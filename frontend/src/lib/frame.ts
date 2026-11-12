@@ -98,7 +98,7 @@ export function buildSrcdoc(opts: {
     `<meta http-equiv="Content-Security-Policy" content="${FRAME_CSP}">`,
     '<meta charset="utf-8">',
     // color-scheme and the CanvasText fallback keep text readable even if a variable is missing.
-    `<style>:root{color-scheme:${opts.scheme === "dark" ? "dark" : opts.scheme === "light" ? "light" : "light dark"};${theme}}html,body{margin:0;background:transparent;color:var(--fg,CanvasText);font:13px/1.45 -apple-system,"IBM Plex Sans",sans-serif}</style>`,
+    `<style>:root{color-scheme:${opts.scheme === "dark" ? "dark" : opts.scheme === "light" ? "light" : "light dark"};${theme}}html,body{margin:0;background:transparent;color:var(--fg,CanvasText);font:13px/1.45 "Inter Tight",-apple-system,sans-serif}</style>`,
     `<script>window.data=${jsonForScript(opts.data)};${BRIDGE}</script>`,
     "</head><body>",
     opts.html ?? "",
