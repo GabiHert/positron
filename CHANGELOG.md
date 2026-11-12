@@ -5,5 +5,8 @@ a line under **Unreleased** in the same commit.
 
 ## [Unreleased]
 
+### Added
+- Each agent run records what it used: tokens, how much came from the prompt cache, and the cost at API prices. Activity shows it on every run, and an agent's page shows its total for the last 7 days. Runs from before this version have no usage.
+
 ### Changed
 - New typography, the same as Hadron's: Inter Tight for the interface and headings and Unbounded for the Positron wordmark replace the serif titles and IBM Plex Sans. Code and monospace text use IBM Plex Mono. The fonts are bundled in the app.
