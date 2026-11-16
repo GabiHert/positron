@@ -44,6 +44,11 @@ type toolServer struct {
 	srv   *http.Server
 }
 
+// toolSessionTimeout closes a tool session nobody has used for this long. claude -p never closes
+// its session when it exits, and each session here holds a full tool server (about 380 KB), so
+// without it every assistant reply and block refresh would stay in memory for good.
+var toolSessionTimeout = 30 * time.Minute
+
 func startToolServer(s *Service) (*toolServer, error) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -54,7 +59,7 @@ func startToolServer(s *Service) (*toolServer, error) {
 	ts := &toolServer{url: "http://" + ln.Addr().String() + "/mcp", token: hex.EncodeToString(b)}
 	h := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
 		return s.mcpServer(r.Header.Get(chatHeader))
-	}, nil)
+	}, &mcp.StreamableHTTPOptions{SessionTimeout: toolSessionTimeout})
 	ts.srv = &http.Server{ReadHeaderTimeout: 10 * time.Second, Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		got := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 		if subtle.ConstantTimeCompare([]byte(got), []byte(ts.token)) != 1 {

@@ -390,3 +390,24 @@ func TestAgentComputerAccess(t *testing.T) {
 		t.Fatal("chats without an agent never get computer access")
 	}
 }
+
+// Each tool session holds a whole tool server, and claude -p never closes its session, so idle
+// sessions must time out.
+func TestIdleToolSessionsAreClosed(t *testing.T) {
+	old := toolSessionTimeout
+	toolSessionTimeout = 200 * time.Millisecond
+	t.Cleanup(func() { toolSessionTimeout = old })
+	s, _, _ := setup(t)
+	c, _ := s.Create(PurposeNewAgent, "")
+	cs, err := connect(t, s, c.ID, s.tools.token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := cs.ListTools(context.Background(), nil); err != nil {
+		t.Fatalf("a fresh session failed: %v", err)
+	}
+	time.Sleep(600 * time.Millisecond)
+	if _, err := cs.ListTools(context.Background(), nil); err == nil {
+		t.Fatal("an idle tool session was still open after its timeout")
+	}
+}
