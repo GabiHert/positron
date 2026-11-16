@@ -133,6 +133,8 @@ type Settings struct {
 	OpenAtLogin        bool          `json:"openAtLogin"`
 	Notify             bool          `json:"notify"`
 	MCPEnabled         bool          `json:"mcpEnabled"` // Claude Code in other projects can use Positron
+	// HideDockWhenClosed takes the Dock icon away while the window is closed; the menu bar icon stays.
+	HideDockWhenClosed bool `json:"hideDockWhenClosed"`
 }
 
 // DefaultSettings are the settings of a fresh install.

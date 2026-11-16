@@ -184,6 +184,7 @@ type SettingsDTO struct {
 	OpenAtLogin        bool        `json:"openAtLogin"`
 	Notify             bool        `json:"notify"`
 	MCPEnabled         bool        `json:"mcpEnabled"` // Claude Code in other projects can use Positron
+	HideDockWhenClosed bool        `json:"hideDockWhenClosed"`
 	MediaDir           string      `json:"mediaDir"`   // read only
 	MediaBytes         int64       `json:"mediaBytes"` // read only
 	MediaFiles         int         `json:"mediaFiles"` // read only

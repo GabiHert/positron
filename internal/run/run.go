@@ -28,10 +28,13 @@ import (
 	"github.com/GabiHert/positron/internal/speech"
 	"github.com/GabiHert/positron/internal/store"
 	"github.com/GabiHert/positron/internal/system"
+	"github.com/GabiHert/positron/internal/uigate"
 	"github.com/GabiHert/positron/internal/update"
 	"github.com/GabiHert/positron/internal/whatsapp"
 	"github.com/google/uuid"
 	wailsv2 "github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
@@ -114,15 +117,27 @@ func Run(assets embed.FS) error {
 		defer ctxMu.Unlock()
 		return wctx
 	}
-	emit := func(event string, data any) {
+	// While the window is closed, Positron keeps running but sends the window no events; it
+	// catches up with one "resume" event when it shows again.
+	gate := uigate.New(func(event string, data any) {
 		if c := getCtx(); c != nil {
 			wruntime.EventsEmit(c, event, data)
 		}
-	}
+	}, app.EventNavigate, app.EventOpenChat)
+	emit := gate.Emit
 	show := func() {
 		if c := getCtx(); c != nil {
+			menubar.ShowDockIcon()
+			wruntime.Show(c)
 			wruntime.WindowShow(c)
 			wruntime.WindowUnminimise(c)
+			gate.SetVisible(true)
+		}
+	}
+	// hide closes the window the way its red button does: the app hides and keeps running.
+	hide := func() {
+		if c := getCtx(); c != nil {
+			wruntime.Hide(c)
 		}
 	}
 
@@ -191,7 +206,7 @@ func Run(assets embed.FS) error {
 		},
 	})
 	be = backend.New(backend.Deps{Store: st, WA: wa, Engine: eng, Media: mediaStore, Models: models, Runner: runner,
-		Env: gitEnv, Emit: emit, Version: Version, Login: system.LoginItem{},
+		Env: gitEnv, Emit: emit, Version: Version, Login: system.LoginItem{}, Dock: menubar.SetHideDockWhenClosed,
 		Update:  upd,
 		Focused: menubar.Focused,
 		NotifyChat: func(chat, title, subtitle, body string) {
@@ -277,6 +292,7 @@ func Run(assets embed.FS) error {
 		BackgroundColour:  &options.RGBA{R: 251, G: 251, B: 248, A: 255},
 		Mac:               &mac.Options{TitleBar: mac.TitleBarHiddenInset()},
 		HideWindowOnClose: true,
+		Menu:              appMenu(hide, func() { wruntime.WindowMinimise(getCtx()) }),
 		SingleInstanceLock: &options.SingleInstanceLock{
 			UniqueId:               instanceID(),
 			OnSecondInstanceLaunch: func(options.SecondInstanceData) { show() },
@@ -313,6 +329,12 @@ func Run(assets embed.FS) error {
 				Quit:     func() { wruntime.Quit(ctx) },
 				Inbox:    func() { show(); emit(app.EventNavigate, "inbox") },
 			})
+			menubar.SetHideDockWhenClosed(st.Settings().HideDockWhenClosed)
+			menubar.WatchApp(menubar.AppHandlers{Reopen: show, Visible: func(v bool) {
+				held := gate.Skipped()
+				gate.SetVisible(v)
+				log.Printf("window: visible=%v, %d events held while closed", v, held)
+			}})
 			item.SetWaiting(be.Status().Waiting)
 			item.SetUnread(be.GetUnreadTotal())
 			go func() {
@@ -341,4 +363,18 @@ func instanceID() string {
 		return "tech.bhlabs.positron." + uuid.NewSHA1(uuid.NameSpaceURL, []byte(h)).String()[:8]
 	}
 	return "tech.bhlabs.positron"
+}
+
+// appMenu is the macOS menu bar menu: the app menu (Hide, Quit ⌘Q), Edit (copy and paste in the
+// window), File with Close Window (⌘W), which hides the window and keeps Positron running, and
+// Window.
+func appMenu(closeWindow, minimise func()) *menu.Menu {
+	m := menu.NewMenu()
+	m.Append(menu.AppMenu())
+	file := m.AddSubmenu("File")
+	file.AddText("Close Window", keys.CmdOrCtrl("w"), func(*menu.CallbackData) { closeWindow() })
+	m.Append(menu.EditMenu())
+	win := m.AddSubmenu("Window")
+	win.AddText("Minimize", keys.CmdOrCtrl("m"), func(*menu.CallbackData) { minimise() })
+	return m
 }

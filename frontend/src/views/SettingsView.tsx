@@ -250,7 +250,14 @@ export function SettingsView({ status, setStatus }: { status: Status | null; set
               checked={settings.openAtLogin}
               onChange={(v) => update({ ...settings, openAtLogin: v })}
               title="Open at login"
-              help="Agents only work while Positron is running. Closing the window keeps it running in the menu bar."
+              help="Agents only work while Positron is running. Closing the window (⌘W) keeps it running in the menu bar; ⌘Q quits."
+            />
+            <Check
+              id="a-dock"
+              checked={settings.hideDockWhenClosed}
+              onChange={(v) => update({ ...settings, hideDockWhenClosed: v })}
+              title="Hide the Dock icon while the window is closed"
+              help="Positron stays in the menu bar. Open it again from there, or by opening the app."
             />
             <Check id="a-notify" checked={settings.notify} onChange={(v) => update({ ...settings, notify: v })} title="Notify me when a reply needs approval" />
             <div className="section__foot">

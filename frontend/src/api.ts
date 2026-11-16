@@ -165,6 +165,7 @@ export type Settings = {
   openAtLogin: boolean;
   notify: boolean;
   mcpEnabled: boolean;
+  hideDockWhenClosed: boolean;
   mediaDir: string;
   mediaBytes: number;
   mediaFiles: number;
