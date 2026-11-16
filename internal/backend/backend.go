@@ -40,6 +40,7 @@ type Deps struct {
 	Emit    func(event string, data any)
 	Version string
 	Login   LoginItem
+	Dock    func(hideWhenClosed bool) // applies the Dock icon setting; nil in tests
 	Update  *update.Service
 
 	// The inbox's macOS side.
@@ -609,7 +610,8 @@ func (b *Backend) GetSettings() app.SettingsDTO {
 	return app.SettingsDTO{
 		Defaults:           app.DefaultsDTO{Mode: string(s.Defaults.Mode), MaxPerHour: s.Defaults.MaxPerHour, WaitSeconds: s.Defaults.WaitSeconds, Prefix: s.Defaults.Prefix},
 		MediaRetentionDays: s.MediaRetentionDays, OpenAtLogin: s.OpenAtLogin, Notify: s.Notify, MCPEnabled: s.MCPEnabled,
-		MediaDir: tilde(b.d.Media.Dir), MediaBytes: bytes, MediaFiles: files,
+		HideDockWhenClosed: s.HideDockWhenClosed,
+		MediaDir:           tilde(b.d.Media.Dir), MediaBytes: bytes, MediaFiles: files,
 	}
 }
 
@@ -623,7 +625,7 @@ func (b *Backend) SaveSettings(d app.SettingsDTO) error {
 		Defaults: domain.AgentDefaults{Mode: mode, MaxPerHour: clamp(d.Defaults.MaxPerHour, 0, 1000),
 			WaitSeconds: clamp(d.Defaults.WaitSeconds, 0, 600), Prefix: strings.TrimSpace(d.Defaults.Prefix)},
 		MediaRetentionDays: clamp(d.MediaRetentionDays, 0, 3650), OpenAtLogin: d.OpenAtLogin, Notify: d.Notify,
-		MCPEnabled: d.MCPEnabled,
+		MCPEnabled: d.MCPEnabled, HideDockWhenClosed: d.HideDockWhenClosed,
 	}
 	if s.OpenAtLogin != old.OpenAtLogin && b.d.Login != nil {
 		if err := b.d.Login.Set(s.OpenAtLogin); err != nil {
@@ -632,6 +634,9 @@ func (b *Backend) SaveSettings(d app.SettingsDTO) error {
 	}
 	if err := b.d.Store.SaveSettings(s); err != nil {
 		return err
+	}
+	if s.HideDockWhenClosed != old.HideDockWhenClosed && b.d.Dock != nil {
+		b.d.Dock(s.HideDockWhenClosed)
 	}
 	if s.MediaRetentionDays != old.MediaRetentionDays {
 		go b.d.Media.Prune(s.MediaRetentionDays)

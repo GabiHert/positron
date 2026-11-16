@@ -1267,6 +1267,7 @@ export namespace app {
 	    openAtLogin: boolean;
 	    notify: boolean;
 	    mcpEnabled: boolean;
+	    hideDockWhenClosed: boolean;
 	    mediaDir: string;
 	    mediaBytes: number;
 	    mediaFiles: number;
@@ -1282,6 +1283,7 @@ export namespace app {
 	        this.openAtLogin = source["openAtLogin"];
 	        this.notify = source["notify"];
 	        this.mcpEnabled = source["mcpEnabled"];
+	        this.hideDockWhenClosed = source["hideDockWhenClosed"];
 	        this.mediaDir = source["mediaDir"];
 	        this.mediaBytes = source["mediaBytes"];
 	        this.mediaFiles = source["mediaFiles"];

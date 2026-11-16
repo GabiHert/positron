@@ -6,3 +6,7 @@ func install()         {}
 func setWaiting(_ int) {}
 func setUnread(_ int)  {}
 func focused() bool    { return false }
+
+func appWatch()           {}
+func appShow()            {}
+func appSetHideDock(bool) {}

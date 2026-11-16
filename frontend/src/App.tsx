@@ -15,10 +15,16 @@ export type View =
   | { name: "new-agent"; n: number }
   | { name: "settings" };
 
+// lastView keeps the open page when Root redraws App after the window was closed.
+let lastView: View = { name: "activity" };
+
 export function App() {
   const [status, setStatus] = useStatus();
   const [agents, reloadAgents] = useAgents();
-  const [view, setView] = useState<View>({ name: "activity" });
+  const [view, setView] = useState<View>(() => lastView);
+  useEffect(() => {
+    lastView = view;
+  }, [view]);
   const newAgent = () => setView({ name: "new-agent", n: Date.now() });
 
   // Start on Chats (where the QR code is) until WhatsApp is linked; Activity afterwards.
