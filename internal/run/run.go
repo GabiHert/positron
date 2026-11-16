@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/GabiHert/positron/internal/migrate"
 	"github.com/GabiHert/positron/internal/paths"
 	"github.com/GabiHert/positron/internal/speech"
+	"github.com/GabiHert/positron/internal/speechworker"
 	"github.com/GabiHert/positron/internal/store"
 	"github.com/GabiHert/positron/internal/system"
 	"github.com/GabiHert/positron/internal/update"
@@ -127,7 +129,10 @@ func Run(assets embed.FS) error {
 	}
 
 	mediaStore := media.Store{Dir: paths.MediaDir()}
+	// engineSpeech only checks model files here; Whisper itself runs in a helper process, which
+	// hands all of its memory back when it exits.
 	engineSpeech := speech.New(speech.Config{ModelsDir: paths.ModelsDir()})
+	stt := &speechworker.Client{ReadyFn: engineSpeech.ReadyFor, Command: speechHelper(paths.ModelsDir())}
 	detector := speech.NewDetector(paths.ModelsDir())
 	models := speech.NewModelManager(paths.ModelsDir(), engineSpeech, detector)
 	runner := claude.Runner{EnvFn: env}
@@ -155,7 +160,7 @@ func Run(assets embed.FS) error {
 	}
 	eng := engine.New(engine.Deps{
 		Store: st, WA: wa, Runner: runner, Media: mediaStore,
-		Transcriber: media.Transcriber{Engine: engineSpeech, Detector: detector, TmpDir: os.TempDir()},
+		Transcriber: media.Transcriber{Engine: stt, Detector: detector, TmpDir: os.TempDir()},
 		Speaker:     media.Speaker{EnvFn: env, TmpDir: os.TempDir()},
 		RepoEnv:     gitEnv,
 		OnRun: func(r domain.Run) {
@@ -327,7 +332,7 @@ func Run(assets embed.FS) error {
 			asst.Close()
 			wa.Stop()
 			eng.Close()
-			engineSpeech.Unload()
+			stt.Unload()
 			_ = st.Close()
 		},
 		Bind: []interface{}{bound},
@@ -341,4 +346,24 @@ func instanceID() string {
 		return "tech.bhlabs.positron." + uuid.NewSHA1(uuid.NameSpaceURL, []byte(h)).String()[:8]
 	}
 	return "tech.bhlabs.positron"
+}
+
+// speechHelper starts this binary as the speech helper.
+func speechHelper(modelsDir string) func() *exec.Cmd {
+	return func() *exec.Cmd {
+		self, err := os.Executable()
+		if err != nil {
+			self = os.Args[0]
+		}
+		cmd := exec.Command(self, speechworker.Flag, modelsDir)
+		cmd.Stderr = os.Stderr
+		return cmd
+	}
+}
+
+// SpeechWorker runs Whisper for the app over stdin and stdout until the app closes stdin.
+func SpeechWorker(modelsDir string) error {
+	e := speech.New(speech.Config{ModelsDir: modelsDir, IdleUnload: 24 * time.Hour})
+	defer e.Unload()
+	return speechworker.Serve(os.Stdin, os.Stdout, e.Transcribe)
 }
