@@ -55,6 +55,7 @@ func cachedEnv() func() []string {
 
 // Run starts the app.
 func Run(assets embed.FS) error {
+	startPprof()
 	// wails build runs this to list the bound methods. It must not open, create or move the real
 	// data folder: give it a throwaway one, which also turns the Deputy migration off.
 	if generatingBindings {
