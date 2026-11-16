@@ -43,6 +43,9 @@ type Options struct {
 	Port            string                   // "" = POSITRON_MCP_PORT, else DefaultPort
 	DefaultRepoPath func(name string) string // where create_agent puts a new agent's repo
 	WaitTimeout     time.Duration            // how long tools wait for Claude or an agent, default 5 minutes
+	// SessionTimeout closes a session unused for this long, default 24 hours. Claude Code does not
+	// close its session when it exits, so without a timeout every session would stay forever.
+	SessionTimeout time.Duration
 }
 
 // Server is Positron's MCP server for Claude Code in other projects. It is off until SetEnabled(true).
@@ -165,7 +168,11 @@ func (s *Server) SetEnabled(on bool) error {
 // Handler serves /mcp behind the Host, Origin and token checks.
 func (s *Server) Handler() http.Handler {
 	srv := s.mcpServer()
-	h := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return srv }, nil)
+	idle := s.opts.SessionTimeout
+	if idle <= 0 {
+		idle = 24 * time.Hour
+	}
+	h := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return srv }, &mcp.StreamableHTTPOptions{SessionTimeout: idle})
 	mux := http.NewServeMux()
 	mux.Handle("/mcp", h)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

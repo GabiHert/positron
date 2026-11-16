@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/GabiHert/positron/internal/app"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -321,5 +322,21 @@ func TestSendToClaudeChatWaitsAndReturnsCards(t *testing.T) {
 	out, isErr := call(t, connect(t, s, hs.URL), "send_to_claude_chat", map[string]any{"chat": "lunch", "text": "draft a hello to the family"})
 	if isErr || !strings.Contains(out, `"id": "m3"`) || !strings.Contains(out, "Oi família") || strings.Contains(out, "m1") || strings.Contains(out, "Read 40") {
 		t.Fatalf("got %s", out)
+	}
+}
+
+// Claude Code never closes its session when it exits, so idle sessions must time out or they
+// stay in memory for good.
+func TestIdleSessionsAreClosed(t *testing.T) {
+	s := New(newFake(), Options{Home: t.TempDir(), Port: "0", SessionTimeout: 200 * time.Millisecond})
+	hs := httptest.NewServer(s.Handler())
+	t.Cleanup(hs.Close)
+	cs := connect(t, s, hs.URL)
+	if _, err := cs.ListTools(context.Background(), nil); err != nil {
+		t.Fatalf("a fresh session failed: %v", err)
+	}
+	time.Sleep(600 * time.Millisecond)
+	if _, err := cs.ListTools(context.Background(), nil); err == nil {
+		t.Fatal("an idle session was still open after its timeout")
 	}
 }
