@@ -88,31 +88,7 @@ func (rn Runner) Run(ctx context.Context, r AgentRun) (AgentResult, error) {
 	if timeout <= 0 {
 		timeout = 5 * time.Minute
 	}
-	tools := []string{"Read", "Write", "Edit", "MultiEdit", "Glob", "Grep"}
-	if r.Web {
-		tools = append(tools, "WebSearch", "WebFetch")
-	}
-	disallowed := []string{"Task", "NotebookEdit"}
-	if r.Bash {
-		tools = append(tools, "Bash")
-	} else {
-		disallowed = append(disallowed, "Bash")
-	}
-	for _, name := range r.MCP {
-		tools = append(tools, MCPToolRule(name))
-	}
-	if r.ReadOnly {
-		disallowed = append(disallowed, ReadOnlyRules(r.Folders)...)
-	}
-	args := []string{"-p", "--output-format", "json", "--json-schema", resultSchema, "--no-session-persistence",
-		"--permission-mode", "acceptEdits", "--allowedTools", strings.Join(tools, " "),
-		"--disallowedTools", strings.Join(disallowed, " "), "--append-system-prompt", r.SystemPrompt}
-	for _, d := range r.Folders {
-		args = append(args, "--add-dir", d)
-	}
-	if r.Model != "" {
-		args = append(args, "--model", r.Model)
-	}
+	args := runArgs(r)
 
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -184,4 +160,40 @@ func lastLines(s string, n int) string {
 		lines = lines[len(lines)-n:]
 	}
 	return strings.Join(lines, "\n")
+}
+
+// runArgs is the claude command line for an agent run.
+func runArgs(r AgentRun) []string {
+	tools := []string{"Read", "Write", "Edit", "MultiEdit", "Glob", "Grep"}
+	if r.Web {
+		tools = append(tools, "WebSearch", "WebFetch")
+	}
+	disallowed := []string{"Task", "NotebookEdit"}
+	if r.Bash {
+		tools = append(tools, "Bash")
+	} else {
+		disallowed = append(disallowed, "Bash")
+	}
+	for _, name := range r.MCP {
+		tools = append(tools, MCPToolRule(name))
+	}
+	if r.ReadOnly {
+		disallowed = append(disallowed, ReadOnlyRules(r.Folders)...)
+	}
+	args := []string{"-p", "--output-format", "json", "--json-schema", resultSchema, "--no-session-persistence",
+		"--permission-mode", "acceptEdits", "--allowedTools", strings.Join(tools, " "),
+		"--disallowedTools", strings.Join(disallowed, " "), "--append-system-prompt", r.SystemPrompt}
+	for _, d := range r.Folders {
+		args = append(args, "--add-dir", d)
+	}
+	if r.Model != "" {
+		args = append(args, "--model", r.Model)
+	}
+	if len(r.MCP) == 0 {
+		// Without this, every run starts each MCP server the person has set up (one of theirs
+		// launches through npm every time), about 100 MB and a few seconds per run, though the
+		// agent is not allowed to use their tools.
+		args = append(args, "--strict-mcp-config")
+	}
+	return args
 }
