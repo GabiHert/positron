@@ -1,16 +1,16 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { InboxChat, Settings } from "../api";
 
-const setNotifications = vi.fn(async () => {});
+const mute = vi.fn(async (_chat: string, length: string) => (length === "off" ? 0 : Date.now() + 8 * 3600_000));
 const openNotificationSettings = vi.fn(async () => {});
 vi.mock("../api", async (orig) => {
   const real = await orig<typeof import("../api")>();
-  return { ...real, api: { ...real.api, openNotificationSettings }, inbox: { ...real.inbox, setNotifications } };
+  return { ...real, api: { ...real.api, openNotificationSettings }, inbox: { ...real.inbox, mute } };
 });
 
 const { NotificationsCard } = await import("./SettingsView");
-const { NotifyToggle } = await import("./inbox/Conversation");
+const { MuteMenu } = await import("./inbox/MuteMenu");
 
 const settings = {
   notify: true,
@@ -48,18 +48,34 @@ describe("notifications", () => {
     expect(openNotificationSettings).toHaveBeenCalled();
   });
 
-  it("the bell mutes a chat in Positron and back", async () => {
-    const chat = { jid: "ana@s.whatsapp.net", name: "Ana", notifyOff: false, muted: false } as InboxChat;
+  it("mutes a chat on WhatsApp from the header and unmutes it", async () => {
+    const chat = { jid: "ana@s.whatsapp.net", name: "Ana", notifyOff: false, muted: false, mutedUntil: 0 } as InboxChat;
     const onError = vi.fn();
-    render(<NotifyToggle chat={chat} onError={onError} />);
-    fireEvent.click(screen.getByRole("button", { name: "Turn off notifications for this chat in Positron" }));
-    expect(setNotifications).toHaveBeenLastCalledWith("ana@s.whatsapp.net", false);
-    const on = await screen.findByRole("button", { name: /Notifications off for this chat/ });
-    expect(on).toHaveAttribute("aria-pressed", "true");
-    setNotifications.mockRejectedValueOnce(new Error("no"));
-    fireEvent.click(on);
-    expect(setNotifications).toHaveBeenLastCalledWith("ana@s.whatsapp.net", true);
-    await screen.findByRole("button", { name: /Notifications off for this chat/ }); // rolled back
-    expect(onError).toHaveBeenCalledWith("no");
+    render(<MuteMenu chat={chat} onError={onError} />);
+    fireEvent.click(screen.getByRole("button", { name: "Mute notifications" }));
+    expect(screen.getByText(/Synced with WhatsApp/)).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Unmute" })).toBeNull();
+    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "8 hours" })));
+    expect(mute).toHaveBeenLastCalledWith("ana@s.whatsapp.net", "8h");
+    const muted = screen.getByRole("button", { name: /^Muted until .*Change or unmute$/ });
+
+    fireEvent.click(muted);
+    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "Unmute" })));
+    expect(mute).toHaveBeenLastCalledWith("ana@s.whatsapp.net", "off");
+    expect(screen.getByRole("button", { name: "Mute notifications" })).toBeInTheDocument();
+
+    mute.mockRejectedValueOnce(new Error("not connected"));
+    fireEvent.click(screen.getByRole("button", { name: "Mute notifications" }));
+    await act(async () => fireEvent.click(screen.getByRole("menuitem", { name: "Always" })));
+    expect(onError).toHaveBeenCalledWith("Couldn't change the mute on WhatsApp: not connected");
+    expect(screen.getByRole("button", { name: "Mute notifications" })).toBeInTheDocument();
+  });
+
+  it("shows a chat muted always, or in Positron only, as muted", () => {
+    const always = { jid: "g@g.us", name: "Família", notifyOff: false, mutedUntil: new Date(9999, 0, 1).getTime() } as InboxChat;
+    const { rerender } = render(<MuteMenu chat={always} onError={() => {}} />);
+    expect(screen.getByRole("button", { name: "Muted always. Change or unmute" })).toBeInTheDocument();
+    rerender(<MuteMenu chat={{ ...always, jid: "b", mutedUntil: 0, notifyOff: true }} onError={() => {}} />);
+    expect(screen.getByRole("button", { name: "Muted in Positron only. Change or unmute" })).toBeInTheDocument();
   });
 });

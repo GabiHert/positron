@@ -8,11 +8,13 @@ import {
   dayLabel,
   disappearingLabel,
   groupByDay,
+  isMuted,
   lastSeen,
   listTime,
   matchesFilter,
   mergeMessages,
   messageSnippet,
+  muteLabel,
   normalize,
   phoneDigits,
   pickRecorderMime,
@@ -214,5 +216,23 @@ describe("misc", () => {
     expect(pickRecorderMime((t) => t === "audio/webm;codecs=opus")).toBe("audio/webm;codecs=opus");
     expect(pickRecorderMime((t) => t.startsWith("audio/"))).toBe("audio/mp4");
     expect(pickRecorderMime(() => false)).toBe("");
+  });
+});
+
+describe("mute", () => {
+  const now = new Date(2026, 10, 17, 21, 0).getTime();
+  const c = (mutedUntil: number, notifyOff = false) => ({ mutedUntil, notifyOff });
+  it("knows when a mute has ended", () => {
+    expect(isMuted(c(0), now)).toBe(false);
+    expect(isMuted(c(now + 1000), now)).toBe(true);
+    expect(isMuted(c(now - 1000), now)).toBe(false); // ended: the chat notifies again
+    expect(isMuted(c(0, true), now)).toBe(true);
+  });
+  it("says until when", () => {
+    expect(muteLabel(c(0), now)).toBe("");
+    expect(muteLabel(c(new Date(9999, 0, 1).getTime()), now)).toBe("Muted always");
+    expect(muteLabel(c(new Date(2026, 10, 17, 23, 30).getTime()), now)).toMatch(/^Muted until (23:30|11:30 PM)$/);
+    expect(muteLabel(c(new Date(2026, 10, 24, 21, 0).getTime()), now)).toMatch(/^Muted until .*24.*, (21:00|09:00 PM)$/);
+    expect(muteLabel(c(now - 1, true), now)).toBe("Muted in Positron only");
   });
 });

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/appstate"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
 	"go.mau.fi/whatsmeow/proto/waWeb"
@@ -155,8 +156,10 @@ func (c *Client) handleInbox(evt any) {
 		c.update(ChatRead{Chat: e.JID.String(), Read: e.Action.GetRead(), At: e.Timestamp})
 	case *events.Mute:
 		u := ChatMeta{Chat: e.JID.String(), Field: "mute", On: e.Action.GetMuted()}
-		if end := e.Action.GetMuteEndTimestamp(); u.On && end > 0 {
-			u.Until = time.UnixMilli(end)
+		if u.On {
+			if u.Until = muteUntil(e.Action.GetMuteEndTimestamp()); u.Until.Equal(MutedForever) {
+				u.Until = time.Time{}
+			}
 		}
 		c.update(u)
 	case *events.Pin:
@@ -235,9 +238,7 @@ func (c *Client) history(d *waHistorySync.HistorySync) (History, bool) {
 				hc.Unread = 1
 			}
 			hc.Archived, hc.Pinned = conv.GetArchived(), conv.GetPinned() > 0
-			if end := conv.GetMuteEndTime(); end > 0 {
-				hc.MutedUntil = time.Unix(int64(end), 0)
-			}
+			hc.MutedUntil = muteUntil(int64(conv.GetMuteEndTime())) // "always" arrives as -1
 			// The phone's own record of the chat's disappearing messages, when it sends one.
 			if conv.EphemeralExpiration != nil || conv.GetEphemeralSettingTimestamp() > 0 {
 				c.learnTimer(hc.JID, timerSeen{Seconds: conv.GetEphemeralExpiration(), SetAt: conv.GetEphemeralSettingTimestamp(), Authoritative: true})
@@ -467,6 +468,48 @@ func (c *Client) React(ctx context.Context, chat, sender, id, emoji string) erro
 	}
 	_, err = cli.SendMessage(ctx, j, cli.BuildReaction(j, s, id, emoji))
 	return err
+}
+
+// MutedForever is the mute end of a chat muted with no end ("always").
+var MutedForever = time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC)
+
+// muteUntil reads a mute end from WhatsApp: 0 is not muted, a negative value is always, and
+// the value is in milliseconds (app-state) or seconds (history sync).
+func muteUntil(end int64) time.Time {
+	switch {
+	case end == 0:
+		return time.Time{}
+	case end < 0:
+		return MutedForever
+	case end > 1e11: // seconds this large would be past the year 5000
+		return time.UnixMilli(end)
+	}
+	return time.Unix(end, 0)
+}
+
+// SetMute mutes a chat until the given time (MutedForever or zero with mute for always) or
+// unmutes it. It goes to WhatsApp's app-state, so the phone and other devices show the same.
+func (c *Client) SetMute(ctx context.Context, chat string, mute bool, until time.Time) error {
+	cli, err := c.client()
+	if err != nil {
+		return err
+	}
+	if cli.Store == nil || cli.Store.ID == nil || !cli.IsLoggedIn() {
+		return errors.New("WhatsApp is not connected")
+	}
+	j, err := parseChat(chat)
+	if err != nil {
+		return err
+	}
+	var end *int64
+	if mute && !until.IsZero() && !until.Equal(MutedForever) {
+		ms := until.UnixMilli()
+		end = &ms
+	}
+	if err := cli.SendAppState(ctx, appstate.BuildMuteAbs(j, mute, end)); err != nil {
+		return fmt.Errorf("WhatsApp didn't take the change: %w", err)
+	}
+	return nil
 }
 
 // Revoke deletes one of the owner's messages for everyone.

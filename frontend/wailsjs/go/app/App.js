@@ -186,6 +186,10 @@ export function MarkChatRead(arg1) {
   return window['go']['app']['App']['MarkChatRead'](arg1);
 }
 
+export function MuteChat(arg1, arg2) {
+  return window['go']['app']['App']['MuteChat'](arg1, arg2);
+}
+
 export function NewAgent() {
   return window['go']['app']['App']['NewAgent']();
 }
@@ -284,10 +288,6 @@ export function SendVoice(arg1) {
 
 export function SetActiveChat(arg1) {
   return window['go']['app']['App']['SetActiveChat'](arg1);
-}
-
-export function SetChatNotifications(arg1, arg2) {
-  return window['go']['app']['App']['SetChatNotifications'](arg1, arg2);
 }
 
 export function SetMCPEnabled(arg1) {
