@@ -230,7 +230,7 @@ func (s *Store) CountUnreadAfter(chat string, t time.Time) int {
 func (s *Store) TotalUnread(now time.Time) int {
 	n := 0
 	for _, c := range s.Chats() {
-		if c.Unread > 0 && !c.Muted(now) {
+		if c.Unread > 0 && !c.Muted(now) && !c.NotifyOff {
 			n += c.Unread
 		}
 	}

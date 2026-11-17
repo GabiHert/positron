@@ -202,6 +202,10 @@ export function OpenMedia(arg1, arg2) {
   return window['go']['app']['App']['OpenMedia'](arg1, arg2);
 }
 
+export function OpenNotificationSettings() {
+  return window['go']['app']['App']['OpenNotificationSettings']();
+}
+
 export function OpenRepoInClaude(arg1) {
   return window['go']['app']['App']['OpenRepoInClaude'](arg1);
 }
@@ -280,6 +284,10 @@ export function SendVoice(arg1) {
 
 export function SetActiveChat(arg1) {
   return window['go']['app']['App']['SetActiveChat'](arg1);
+}
+
+export function SetChatNotifications(arg1, arg2) {
+  return window['go']['app']['App']['SetChatNotifications'](arg1, arg2);
 }
 
 export function SetMCPEnabled(arg1) {

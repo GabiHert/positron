@@ -87,6 +87,8 @@ const paths: Record<string, ReactNode> = {
   ),
   pin: <path d="M9 4h6l-1 6 3 3H7l3-3zM12 13v7" />,
   muted: <path d="M11 5 6 9H3v6h3l5 4zM16 9l5 6M21 9l-5 6" />,
+  bell: <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4" />,
+  bellOff: <path d="M6 16V11a6 6 0 0 1 9.5-4.9M18 11v5l2 2H4M10 21h4M3 3l18 18" />,
   down: <path d="M12 5v14M6 13l6 6 6-6" />,
   timer: (
     <>

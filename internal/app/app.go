@@ -103,6 +103,8 @@ type Backend interface {
 	SearchMessages(query, chat string, limit int) []SearchHitDTO
 	LoadOlder(chat string) error
 	SetTyping(chat string, on bool)
+	SetChatNotifications(jid string, on bool) error
+	OpenNotificationSettings() error
 	GetAvatar(ctx context.Context, jid string) (string, error)
 }
 
@@ -267,6 +269,14 @@ func (a *App) GetMedia(chat, id string) (string, error) { return a.b.GetMedia(a.
 
 // OpenMedia downloads a message's file if needed and opens it in its macOS app.
 func (a *App) OpenMedia(chat, id string) error { return a.b.OpenMedia(a.ctx, chat, id) }
+
+// OpenNotificationSettings opens Positron's page in System Settings → Notifications.
+func (a *App) OpenNotificationSettings() error { return a.b.OpenNotificationSettings() }
+
+// SetChatNotifications mutes (on=false) or unmutes a chat in Positron only.
+func (a *App) SetChatNotifications(jid string, on bool) error {
+	return a.b.SetChatNotifications(jid, on)
+}
 
 // SendText sends a text message as the owner, optionally replying to a message.
 func (a *App) SendText(in SendTextDTO) (ChatMessageDTO, error) { return a.b.SendText(a.ctx, in) }

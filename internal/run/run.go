@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/GabiHert/positron/internal/app"
@@ -26,6 +27,7 @@ import (
 	"github.com/GabiHert/positron/internal/mediacapture"
 	"github.com/GabiHert/positron/internal/menubar"
 	"github.com/GabiHert/positron/internal/migrate"
+	notifier "github.com/GabiHert/positron/internal/notify"
 	"github.com/GabiHert/positron/internal/paths"
 	"github.com/GabiHert/positron/internal/speech"
 	"github.com/GabiHert/positron/internal/speechworker"
@@ -166,15 +168,21 @@ func Run(assets embed.FS) error {
 	upd.CleanLeftovers()
 
 	var be *backend.Backend
+	// Agents that need the owner notify apart from WhatsApp messages: their own switch, their own
+	// group in Notification Center, and a click opens Activity.
 	notify = func(title, body string) {
-		c := getCtx()
-		if c == nil || !st.Settings().Notify {
+		s := st.Settings()
+		if !s.Notify {
 			return
 		}
-		if err := wruntime.SendNotification(c, wruntime.NotificationOptions{ID: uuid.NewString(), Title: title, Body: body}); err != nil {
+		if err := notifier.Post(notifier.Notification{ID: "agents:" + uuid.NewString(), Title: title, Body: body, Thread: "agents",
+			Sound: s.NotifySound, UserInfo: map[string]string{"view": "activity"}}); err != nil {
 			log.Printf("notify: %v", err)
 		}
 	}
+	var notifyBlocked atomic.Bool
+	var failedMu sync.Mutex
+	failedSeen := map[string]bool{} // runs whose failure was announced, so an update does not repeat it
 	eng := engine.New(engine.Deps{
 		Store: st, WA: wa, Runner: runner, Media: mediaStore,
 		Transcriber: media.Transcriber{Engine: stt, Detector: detector, TmpDir: os.TempDir()},
@@ -185,6 +193,24 @@ func Run(assets embed.FS) error {
 				return
 			}
 			emit(app.EventActivity, be.RunDTO(r))
+			failedMu.Lock()
+			announce := r.Status == domain.RunFailed && r.Request == "" && !failedSeen[r.ID]
+			if announce {
+				failedSeen[r.ID] = true
+			} else if r.Status != domain.RunFailed {
+				delete(failedSeen, r.ID)
+			}
+			failedMu.Unlock()
+			if announce {
+				name, chat := r.AgentID, r.ChatJID
+				if a, err := st.Agent(r.AgentID); err == nil {
+					name = a.Name
+				}
+				if c, err := st.Chat(r.ChatJID); err == nil && c.Name != "" {
+					chat = c.Name
+				}
+				notify(name+" couldn't answer in "+chat, r.Error)
+			}
 			s := be.Status()
 			emit(app.EventStatus, s)
 			item.SetWaiting(s.Waiting)
@@ -216,14 +242,10 @@ func Run(assets embed.FS) error {
 		Env: gitEnv, Emit: emit, Version: Version, Login: system.LoginItem{}, Dock: menubar.SetHideDockWhenClosed,
 		Update:  upd,
 		Focused: menubar.Focused,
-		NotifyChat: func(chat, title, subtitle, body string) {
-			c := getCtx()
-			if c == nil {
-				return
-			}
+		NotifyChat: func(n backend.ChatNotification) {
 			// One notification per chat: a new message replaces the chat's previous one.
-			if err := wruntime.SendNotification(c, wruntime.NotificationOptions{ID: "chat:" + chat, Title: title, Subtitle: subtitle,
-				Body: body, Data: map[string]interface{}{"chat": chat}}); err != nil {
+			if err := notifier.Post(notifier.Notification{ID: "chat:" + n.Chat, Title: n.Title, Subtitle: n.Subtitle, Body: n.Body,
+				Thread: "chat:" + n.Chat, Sound: n.Sound, Image: n.Image, UserInfo: map[string]string{"chat": n.Chat}}); err != nil {
 				log.Printf("notify: %v", err)
 			}
 		},
@@ -233,6 +255,7 @@ func Run(assets embed.FS) error {
 			}
 		},
 		OnUnreadTotal: item.SetUnread,
+		NotifyBlocked: notifyBlocked.Load,
 	})
 
 	qe := be.QueryEngine()
@@ -325,7 +348,12 @@ func Run(assets embed.FS) error {
 			ctxMu.Unlock()
 			setCtx(ctx)
 			if err := wruntime.InitializeNotifications(ctx); err == nil {
-				go func() { _, _ = wruntime.RequestNotificationAuthorization(ctx) }()
+				// macOS asks once; after that it answers from what the person chose.
+				go func() {
+					ok, err := wruntime.RequestNotificationAuthorization(ctx)
+					notifyBlocked.Store(!ok)
+					log.Printf("notifications: allowed=%v err=%v", ok, err)
+				}()
 				wruntime.OnNotificationResponse(ctx, func(r wruntime.NotificationResult) {
 					if r.Error != nil {
 						return
@@ -333,6 +361,9 @@ func Run(assets embed.FS) error {
 					if chat, ok := r.Response.UserInfo["chat"].(string); ok && chat != "" {
 						show()
 						emit(app.EventOpenChat, chat)
+					} else if v, ok := r.Response.UserInfo["view"].(string); ok && v == "activity" {
+						show()
+						emit(app.EventNavigate, "activity")
 					}
 				})
 			} else {

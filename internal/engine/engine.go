@@ -149,7 +149,7 @@ func toMessage(in whatsapp.Incoming) domain.Message {
 		MentionsMe: in.MentionsMe || in.QuotesMe, QuotedID: in.QuotedID,
 		QuotedSender: in.QuotedSender, QuotedText: in.QuotedText, QuotedKind: domain.MsgKind(in.QuotedKind),
 		Mentions: in.Mentions, FileName: in.FileName, FileSize: in.FileSize, MediaRef: in.MediaRef,
-		History: in.History, Revoked: in.Revoked, Status: domain.MsgStatus(in.Status), ViewOnce: in.ViewOnce,
+		History: in.History, Offline: in.Offline, Revoked: in.Revoked, Status: domain.MsgStatus(in.Status), ViewOnce: in.ViewOnce,
 	}
 	if in.Kind == "document" && m.Text == "" {
 		m.Text = in.FileName

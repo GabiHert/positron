@@ -182,8 +182,13 @@ type SettingsDTO struct {
 	Defaults           DefaultsDTO `json:"defaults"`
 	MediaRetentionDays int         `json:"mediaRetentionDays"` // 0 keeps media
 	OpenAtLogin        bool        `json:"openAtLogin"`
-	Notify             bool        `json:"notify"`
-	MCPEnabled         bool        `json:"mcpEnabled"` // Claude Code in other projects can use Positron
+	Notify             bool        `json:"notify"` // an agent needs the owner: a reply waits, a run failed
+	NotifyMessages     bool        `json:"notifyMessages"`
+	NotifyPreview      bool        `json:"notifyPreview"`
+	NotifySound        bool        `json:"notifySound"`
+	NotifyGroups       string      `json:"notifyGroups"`  // "all" | "mentions" | "off"
+	NotifyBlocked      bool        `json:"notifyBlocked"` // read only: macOS has notifications off for Positron
+	MCPEnabled         bool        `json:"mcpEnabled"`    // Claude Code in other projects can use Positron
 	HideDockWhenClosed bool        `json:"hideDockWhenClosed"`
 	MediaDir           string      `json:"mediaDir"`   // read only
 	MediaBytes         int64       `json:"mediaBytes"` // read only

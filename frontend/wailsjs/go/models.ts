@@ -926,6 +926,7 @@ export namespace app {
 	    unread: number;
 	    muted: boolean;
 	    mutedUntil: number;
+	    notifyOff: boolean;
 	    pinned: boolean;
 	    archived: boolean;
 	    agentId: string;
@@ -954,6 +955,7 @@ export namespace app {
 	        this.unread = source["unread"];
 	        this.muted = source["muted"];
 	        this.mutedUntil = source["mutedUntil"];
+	        this.notifyOff = source["notifyOff"];
 	        this.pinned = source["pinned"];
 	        this.archived = source["archived"];
 	        this.agentId = source["agentId"];
@@ -1266,6 +1268,11 @@ export namespace app {
 	    mediaRetentionDays: number;
 	    openAtLogin: boolean;
 	    notify: boolean;
+	    notifyMessages: boolean;
+	    notifyPreview: boolean;
+	    notifySound: boolean;
+	    notifyGroups: string;
+	    notifyBlocked: boolean;
 	    mcpEnabled: boolean;
 	    hideDockWhenClosed: boolean;
 	    mediaDir: string;
@@ -1282,6 +1289,11 @@ export namespace app {
 	        this.mediaRetentionDays = source["mediaRetentionDays"];
 	        this.openAtLogin = source["openAtLogin"];
 	        this.notify = source["notify"];
+	        this.notifyMessages = source["notifyMessages"];
+	        this.notifyPreview = source["notifyPreview"];
+	        this.notifySound = source["notifySound"];
+	        this.notifyGroups = source["notifyGroups"];
+	        this.notifyBlocked = source["notifyBlocked"];
 	        this.mcpEnabled = source["mcpEnabled"];
 	        this.hideDockWhenClosed = source["hideDockWhenClosed"];
 	        this.mediaDir = source["mediaDir"];

@@ -68,6 +68,7 @@ function chat(p: Partial<InboxChat>): InboxChat {
     lastStatus: "",
     unread: 0,
     muted: false,
+    notifyOff: false,
     mutedUntil: 0,
     pinned: false,
     archived: false,

@@ -11,6 +11,10 @@ a line under **Unreleased** in the same commit.
 - A macOS menu with Edit (copy and paste) and Window → Minimize (⌘M).
 - Photos open inside Positron instead of in Preview: WhatsApp photos and stickers, and the photos and reply images in Activity. The viewer fits the photo to the window; zoom with a pinch, ⌘+ and ⌘− or a double-click, and drag to move around. The arrow keys step through the chat's other photos. Esc or a click outside closes it. Save…, Copy and Open in Preview are in its top bar. A photo not yet downloaded loads only when you open it.
 
+- Notifications for new WhatsApp messages, like WhatsApp's: one per chat ("3 new messages" when more arrive), titled "Ana" or "Ana @ Family", with the chat's picture when Positron has it. Clicking opens the chat, also when the window is closed. None for your own messages, the chat you have open, chats muted on WhatsApp, archived chats, or the backlog after reconnecting. Settings → Notifications turns them on or off and sets the preview, the sound, and group chats (every message, only mentions and replies to you, or never). The new bell at the top of a chat mutes it in Positron only, which also leaves it out of the Dock badge.
+- Notifications when an agent needs you (a reply waits for approval, or a run failed) have their own switch, are grouped apart from messages, and open Activity.
+- Settings says when macOS has notifications turned off for Positron and opens the right page in System Settings.
+
 ### Changed
 - While the window is closed Positron sends it no updates, and it reloads what it shows when it opens again.
 - New typography, the same as Hadron's: Inter Tight for the interface and headings and Unbounded for the Positron wordmark replace the serif titles and IBM Plex Sans. Code and monospace text use IBM Plex Mono. The fonts are bundled in the app.
