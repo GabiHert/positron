@@ -85,23 +85,25 @@ type MediaDTO struct {
 
 // ChatMessageDTO is one message in a chat.
 type ChatMessageDTO struct {
-	ID         string        `json:"id"`
-	ChatJID    string        `json:"chatJid"`
-	SenderJID  string        `json:"senderJid"`
-	SenderName string        `json:"senderName"` // "" for the owner
-	FromMe     bool          `json:"fromMe"`
-	FromAgent  bool          `json:"fromAgent"` // sent by one of Positron's agents
-	AgentName  string        `json:"agentName"`
-	FromUI     bool          `json:"fromUi"` // typed by the owner in Positron
-	At         int64         `json:"at"`
-	Kind       string        `json:"kind"` // "text" | "image" | "voice" | "audio" | "video" | "document" | "sticker" | "other"
-	Text       string        `json:"text"` // body or caption ("" when deleted)
-	Transcript string        `json:"transcript"`
-	Mentions   []string      `json:"mentions"` // mentioned JIDs
-	MentionsMe bool          `json:"mentionsMe"`
-	Quoted     *QuotedDTO    `json:"quoted"` // null when it is not a reply
-	Reactions  []ReactionDTO `json:"reactions"`
-	Media      *MediaDTO     `json:"media"` // null for text
+	ID         string `json:"id"`
+	ChatJID    string `json:"chatJid"`
+	SenderJID  string `json:"senderJid"`
+	SenderName string `json:"senderName"` // "" for the owner
+	FromMe     bool   `json:"fromMe"`
+	FromAgent  bool   `json:"fromAgent"` // sent by one of Positron's agents
+	AgentName  string `json:"agentName"`
+	FromUI     bool   `json:"fromUi"` // typed by the owner in Positron
+	At         int64  `json:"at"`
+	Kind       string `json:"kind"` // "text" | "image" | "voice" | "audio" | "video" | "document" | "sticker" | "other"
+	Text       string `json:"text"` // body or caption ("" when deleted)
+	Transcript string `json:"transcript"`
+	// Transcribing: Positron is transcribing this voice note right now.
+	Transcribing bool          `json:"transcribing"`
+	Mentions     []string      `json:"mentions"` // mentioned JIDs
+	MentionsMe   bool          `json:"mentionsMe"`
+	Quoted       *QuotedDTO    `json:"quoted"` // null when it is not a reply
+	Reactions    []ReactionDTO `json:"reactions"`
+	Media        *MediaDTO     `json:"media"` // null for text
 	// Status is how far the owner's message got: "pending" | "sent" | "delivered" | "read" |
 	// "played" | "failed"; "" for others' messages. In groups it shows the furthest receipt.
 	Status  string `json:"status"`

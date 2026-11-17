@@ -105,6 +105,7 @@ type Backend interface {
 	SetTyping(chat string, on bool)
 	SetChatNotifications(jid string, on bool) error
 	OpenNotificationSettings() error
+	TranscribeVoice(chat, id string) (string, error)
 	GetAvatar(ctx context.Context, jid string) (string, error)
 }
 
@@ -269,6 +270,10 @@ func (a *App) GetMedia(chat, id string) (string, error) { return a.b.GetMedia(a.
 
 // OpenMedia downloads a message's file if needed and opens it in its macOS app.
 func (a *App) OpenMedia(chat, id string) error { return a.b.OpenMedia(a.ctx, chat, id) }
+
+// TranscribeVoice transcribes a voice note or audio message on this Mac and keeps the text. One
+// that already has a transcript returns it without running again.
+func (a *App) TranscribeVoice(chat, id string) (string, error) { return a.b.TranscribeVoice(chat, id) }
 
 // OpenNotificationSettings opens Positron's page in System Settings → Notifications.
 func (a *App) OpenNotificationSettings() error { return a.b.OpenNotificationSettings() }

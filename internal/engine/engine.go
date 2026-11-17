@@ -108,6 +108,12 @@ func (e *Engine) Close() {
 }
 
 // AgentForChat returns the enabled agent that handles jid.
+// TranscribesVoice says whether the chat's agent transcribes its voice notes as they arrive.
+func (e *Engine) TranscribesVoice(jid string) bool {
+	a, ok := e.AgentForChat(jid)
+	return ok && a.TranscribeVoice
+}
+
 func (e *Engine) AgentForChat(jid string) (domain.Agent, bool) {
 	a, _, ok := domain.NewRouter(e.d.Store.Agents()).Owner(jid)
 	return a, ok && a.Enabled

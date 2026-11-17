@@ -37,6 +37,7 @@ function msg(p: Partial<ChatMessage>): ChatMessage {
     kind: "text",
     text: "oi",
     transcript: "",
+    transcribing: false,
     mentions: [],
     mentionsMe: false,
     quoted: null,

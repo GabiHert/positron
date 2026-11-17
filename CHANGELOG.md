@@ -6,6 +6,8 @@ a line under **Unreleased** in the same commit.
 ## [Unreleased]
 
 ### Added
+- Voice note transcripts in the chat: each transcribed voice note or audio message shows its text underneath, two lines until you click it, with a copy button. One without a transcript has a Transcribe button that shows "Transcribing…" while it runs on this Mac. A voice note is transcribed only once; the text is kept and Claude Code's message reads include it.
+- Settings → Voice note transcription chooses which incoming voice notes are transcribed as they arrive: in chats whose agent reads voice notes (as before, the default) or in every chat.
 - Each agent run records what it used: tokens, how much came from the prompt cache, and the cost at API prices. Activity shows it on every run, and an agent's page shows its total for the last 7 days. Runs from before this version have no usage.
 - Close the window with ⌘W (File → Close Window) or the red button and Positron keeps running in the background: WhatsApp, the agents and the Claude Code connection go on. Open it again from the Dock, the menu bar or by opening the app. ⌘Q quits. A new setting hides the Dock icon while the window is closed.
 - A macOS menu with Edit (copy and paste) and Window → Minimize (⌘M).

@@ -82,6 +82,7 @@ func (b *Backend) OnMessage(m domain.Message, change string) {
 	b.emit(app.EventMessage, app.MessageEventDTO{Chat: m.ChatJID, Change: change, Message: b.chatMessageDTO(m)})
 	if change == "new" {
 		b.queueNotify(m)
+		b.autoTranscribe(m)
 	}
 }
 
@@ -281,6 +282,7 @@ func (b *Backend) chatMessageDTO(m domain.Message) app.ChatMessageDTO {
 		Mentions: append([]string{}, m.Mentions...), MentionsMe: m.MentionsMe, Reactions: []app.ReactionDTO{},
 		Status: string(m.Status), Edited: m.Edited, Revoked: m.Revoked, History: m.History, ViewOnce: m.ViewOnce,
 	}
+	d.Transcribing = d.Transcript == "" && b.voice.running(m.ChatJID, m.ID)
 	if m.FromAgent {
 		d.AgentName = m.SenderName
 	}

@@ -139,6 +139,9 @@ type Settings struct {
 	NotifySound    bool   `json:"notifySound"`
 	NotifyGroups   string `json:"notifyGroups"` // "all", "mentions" (mentions and replies to the owner) or "off"
 	MCPEnabled     bool   `json:"mcpEnabled"`   // Claude Code in other projects can use Positron
+	// AutoTranscribe says which incoming voice notes are transcribed as they arrive:
+	// "agents" only in chats whose agent reads voice notes, "all" in every chat.
+	AutoTranscribe string `json:"autoTranscribe"`
 	// HideDockWhenClosed takes the Dock icon away while the window is closed; the menu bar icon stays.
 	HideDockWhenClosed bool `json:"hideDockWhenClosed"`
 }
@@ -148,6 +151,12 @@ const (
 	GroupsAll      = "all"
 	GroupsMentions = "mentions"
 	GroupsOff      = "off"
+)
+
+// Values of Settings.AutoTranscribe.
+const (
+	TranscribeAgents = "agents"
+	TranscribeAll    = "all"
 )
 
 // DefaultSettings are the settings of a fresh install.
@@ -160,6 +169,7 @@ func DefaultSettings() Settings {
 		NotifyPreview:      true,
 		NotifySound:        true,
 		NotifyGroups:       GroupsAll,
+		AutoTranscribe:     TranscribeAgents,
 	}
 }
 

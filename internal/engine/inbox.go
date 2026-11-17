@@ -458,6 +458,12 @@ func (e *Engine) MarkChatRead(chat string) error {
 	return err
 }
 
+// CanTranscribe says whether lang's speech model is installed.
+func (e *Engine) CanTranscribe(lang domain.Language) bool {
+	ok, _ := e.d.Transcriber.Ready(lang)
+	return ok
+}
+
 // TranscribeFile transcribes an audio file in lang with the installed model.
 func (e *Engine) TranscribeFile(ctx context.Context, path string, lang domain.Language) (string, error) {
 	return e.d.Transcriber.Transcribe(ctx, path, lang)

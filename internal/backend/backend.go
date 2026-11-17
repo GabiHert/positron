@@ -76,6 +76,8 @@ type Backend struct {
 
 	notifyOnce  sync.Once
 	notifyState *notifier
+
+	voice voiceJobs // voice notes being transcribed from the chat view or automatically
 }
 
 var _ app.Backend = (*Backend)(nil)
@@ -616,8 +618,9 @@ func (b *Backend) GetSettings() app.SettingsDTO {
 		MediaRetentionDays: s.MediaRetentionDays, OpenAtLogin: s.OpenAtLogin, Notify: s.Notify, MCPEnabled: s.MCPEnabled,
 		HideDockWhenClosed: s.HideDockWhenClosed,
 		NotifyMessages:     s.NotifyMessages, NotifyPreview: s.NotifyPreview, NotifySound: s.NotifySound, NotifyGroups: s.NotifyGroups,
-		NotifyBlocked: b.d.NotifyBlocked != nil && b.d.NotifyBlocked(),
-		MediaDir:      tilde(b.d.Media.Dir), MediaBytes: bytes, MediaFiles: files,
+		AutoTranscribe: transcribeSetting(s.AutoTranscribe),
+		NotifyBlocked:  b.d.NotifyBlocked != nil && b.d.NotifyBlocked(),
+		MediaDir:       tilde(b.d.Media.Dir), MediaBytes: bytes, MediaFiles: files,
 	}
 }
 
@@ -633,6 +636,7 @@ func (b *Backend) SaveSettings(d app.SettingsDTO) error {
 		MediaRetentionDays: clamp(d.MediaRetentionDays, 0, 3650), OpenAtLogin: d.OpenAtLogin, Notify: d.Notify,
 		MCPEnabled: d.MCPEnabled, HideDockWhenClosed: d.HideDockWhenClosed,
 		NotifyMessages: d.NotifyMessages, NotifyPreview: d.NotifyPreview, NotifySound: d.NotifySound, NotifyGroups: groupsSetting(d.NotifyGroups),
+		AutoTranscribe: transcribeSetting(d.AutoTranscribe),
 	}
 	if s.OpenAtLogin != old.OpenAtLogin && b.d.Login != nil {
 		if err := b.d.Login.Set(s.OpenAtLogin); err != nil {

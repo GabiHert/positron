@@ -787,6 +787,7 @@ export namespace app {
 	    kind: string;
 	    text: string;
 	    transcript: string;
+	    transcribing: boolean;
 	    mentions: string[];
 	    mentionsMe: boolean;
 	    quoted?: QuotedDTO;
@@ -816,6 +817,7 @@ export namespace app {
 	        this.kind = source["kind"];
 	        this.text = source["text"];
 	        this.transcript = source["transcript"];
+	        this.transcribing = source["transcribing"];
 	        this.mentions = source["mentions"];
 	        this.mentionsMe = source["mentionsMe"];
 	        this.quoted = this.convertValues(source["quoted"], QuotedDTO);
@@ -1273,6 +1275,7 @@ export namespace app {
 	    notifySound: boolean;
 	    notifyGroups: string;
 	    notifyBlocked: boolean;
+	    autoTranscribe: string;
 	    mcpEnabled: boolean;
 	    hideDockWhenClosed: boolean;
 	    mediaDir: string;
@@ -1294,6 +1297,7 @@ export namespace app {
 	        this.notifySound = source["notifySound"];
 	        this.notifyGroups = source["notifyGroups"];
 	        this.notifyBlocked = source["notifyBlocked"];
+	        this.autoTranscribe = source["autoTranscribe"];
 	        this.mcpEnabled = source["mcpEnabled"];
 	        this.hideDockWhenClosed = source["hideDockWhenClosed"];
 	        this.mediaDir = source["mediaDir"];
