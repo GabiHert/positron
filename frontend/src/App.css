@@ -1235,3 +1235,181 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- image viewer ---- */
+.photo-btn {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  cursor: zoom-in;
+}
+.photo-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.iv {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  /* The picture sits on a dimmed backdrop in both themes. */
+  background: rgba(12, 12, 14, 0.88);
+  color: #f2f2f0;
+  outline: none;
+  -webkit-user-select: none;
+  user-select: none;
+  animation: iv-in 0.12s ease-out;
+}
+@keyframes iv-in {
+  from {
+    opacity: 0;
+  }
+}
+.iv__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* leaves room for the window's traffic lights */
+  padding: 10px 14px 10px 84px;
+  flex: none;
+  --wails-draggable: drag;
+}
+.iv__count {
+  font-size: 12.5px;
+  color: rgba(242, 242, 240, 0.7);
+}
+.iv__actions {
+  display: flex;
+  gap: 6px;
+  --wails-draggable: no-drag;
+}
+.iv__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: pointer;
+}
+.iv__btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+}
+.iv__btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.iv__btn:focus-visible,
+.iv__nav:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.iv__btn--icon {
+  padding: 6px 8px;
+}
+.iv__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px 64px 16px;
+  touch-action: none;
+}
+.iv__stage--zoomed {
+  cursor: grab;
+}
+.iv__stage--zoomed:active {
+  cursor: grabbing;
+}
+.iv__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform-origin: center;
+  will-change: transform;
+  border-radius: 2px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+}
+.iv__img--thumb {
+  /* a small preview stretched to the full size while the photo loads */
+  min-width: min(60vw, 100%);
+  filter: blur(6px);
+}
+.iv__empty {
+  color: rgba(242, 242, 240, 0.7);
+  font-size: 14px;
+}
+.iv__spin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -14px 0 0 -14px;
+}
+.iv__nav {
+  position: absolute;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  border-radius: 50%;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  cursor: pointer;
+}
+.iv__nav:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.iv__nav--prev {
+  left: 14px;
+}
+.iv__nav--prev .icon {
+  transform: rotate(90deg);
+}
+.iv__nav--next {
+  right: 14px;
+}
+.iv__nav--next .icon {
+  transform: rotate(-90deg);
+}
+.iv__foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 24px 16px;
+  text-align: center;
+  font-size: 13px;
+}
+.iv__caption {
+  max-width: 720px;
+  white-space: pre-wrap;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.iv__note,
+.iv__status {
+  color: rgba(242, 242, 240, 0.7);
+  font-size: 12.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .iv {
+    animation: none;
+  }
+}

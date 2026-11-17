@@ -10,6 +10,8 @@ import { Composer, releaseTray, trayFromFiles, type TrayItem } from "./Composer"
 import { DraftCard } from "./DraftCard";
 import { disappearingLabel, groupByDay, lastSeen } from "./helpers";
 import { MessageBubble, type BubbleActions } from "./MessageBubble";
+import { chatGallery } from "./gallery";
+import { openImages } from "../../components/ImageViewer";
 import { useThread } from "./useThread";
 
 export type Presence = {
@@ -198,8 +200,15 @@ export function Conversation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jump?.n, thread.loadedFor]);
 
+  // The viewer steps through the photos loaded in this chat; a ref keeps the bubbles' actions stable.
+  const messagesRef = useRef(thread.messages);
+  messagesRef.current = thread.messages;
   const actions: BubbleActions = useMemo(
     () => ({
+      onOpenImage: (m) => {
+        const g = chatGallery(messagesRef.current, m);
+        openImages(g.items, g.index);
+      },
       onReply: (m) => {
         setEditing(null);
         setReplyTo(m);

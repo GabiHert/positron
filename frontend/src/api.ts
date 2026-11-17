@@ -232,6 +232,10 @@ export const api = {
   downloadSpeechModel: (lang: string) => A.DownloadSpeechModel(lang),
   cancelSpeechDownload: (lang: string) => A.CancelSpeechDownload(lang),
   showMediaFolder: () => A.ShowMediaFolder(),
+  /** asks where to save a copy of an image Positron shows; "" when cancelled */
+  saveImage: (src: string, name: string) => A.SaveImage(src, name) as Promise<string>,
+  copyImage: (src: string) => A.CopyImage(src),
+  openImageInPreview: (src: string) => A.OpenImageInPreview(src),
   recheckClaude: () => A.RecheckClaude() as Promise<Status>,
   listMCPServers: (refresh = false) => arr<MCPServer>(A.ListMCPServers(refresh)),
   getUpdateStatus: () => A.GetUpdateStatus() as Promise<UpdateStatus>,

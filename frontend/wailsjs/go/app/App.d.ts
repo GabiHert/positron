@@ -24,6 +24,8 @@ export function ChooseFiles():Promise<Array<string>>;
 
 export function ChooseFolder():Promise<string>;
 
+export function CopyImage(arg1:string):Promise<void>;
+
 export function CreateAgentFromCard(arg1:string,arg2:app.AgentProposalDTO):Promise<app.AgentDTO>;
 
 export function DeleteAgent(arg1:string):Promise<void>;
@@ -96,6 +98,8 @@ export function NewAgent():Promise<app.AgentDTO>;
 
 export function NewAssistantChat(arg1:string,arg2:string):Promise<app.AssistantChatDTO>;
 
+export function OpenImageInPreview(arg1:string):Promise<void>;
+
 export function OpenMedia(arg1:string,arg2:string):Promise<void>;
 
 export function OpenRepoInClaude(arg1:string):Promise<void>;
@@ -117,6 +121,8 @@ export function RotateMCPToken():Promise<app.MCPStatusDTO>;
 export function RunBoardQuery(arg1:string,arg2:Record<string, any>):Promise<app.QueryResultDTO>;
 
 export function SaveAgent(arg1:app.AgentDTO):Promise<app.AgentDTO>;
+
+export function SaveImage(arg1:string,arg2:string):Promise<string>;
 
 export function SaveSettings(arg1:app.SettingsDTO):Promise<void>;
 

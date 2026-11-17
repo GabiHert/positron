@@ -46,6 +46,10 @@ export function ChooseFolder() {
   return window['go']['app']['App']['ChooseFolder']();
 }
 
+export function CopyImage(arg1) {
+  return window['go']['app']['App']['CopyImage'](arg1);
+}
+
 export function CreateAgentFromCard(arg1, arg2) {
   return window['go']['app']['App']['CreateAgentFromCard'](arg1, arg2);
 }
@@ -190,6 +194,10 @@ export function NewAssistantChat(arg1, arg2) {
   return window['go']['app']['App']['NewAssistantChat'](arg1, arg2);
 }
 
+export function OpenImageInPreview(arg1) {
+  return window['go']['app']['App']['OpenImageInPreview'](arg1);
+}
+
 export function OpenMedia(arg1, arg2) {
   return window['go']['app']['App']['OpenMedia'](arg1, arg2);
 }
@@ -232,6 +240,10 @@ export function RunBoardQuery(arg1, arg2) {
 
 export function SaveAgent(arg1) {
   return window['go']['app']['App']['SaveAgent'](arg1);
+}
+
+export function SaveImage(arg1, arg2) {
+  return window['go']['app']['App']['SaveImage'](arg1, arg2);
 }
 
 export function SaveSettings(arg1) {

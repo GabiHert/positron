@@ -20,6 +20,7 @@ import (
 	"github.com/GabiHert/positron/internal/claude"
 	"github.com/GabiHert/positron/internal/domain"
 	"github.com/GabiHert/positron/internal/engine"
+	"github.com/GabiHert/positron/internal/imagefile"
 	"github.com/GabiHert/positron/internal/mcpserver"
 	"github.com/GabiHert/positron/internal/media"
 	"github.com/GabiHert/positron/internal/mediacapture"
@@ -279,6 +280,17 @@ func Run(assets embed.FS) error {
 	app.SetFilePicker(bound, func(ctx context.Context, title string) ([]string, error) {
 		return wruntime.OpenMultipleFilesDialog(ctx, wruntime.OpenDialogOptions{Title: title})
 	})
+	files := system.FileHandler{MediaDir: paths.MediaDir(), RepoDir: func(id string) (string, bool) {
+		a, err := st.Agent(id)
+		return a.RepoPath, err == nil
+	}}
+	app.SetImageFiles(bound, app.ImageFiles{
+		Resolve: files.Path,
+		SaveDialog: func(ctx context.Context, name string) (string, error) {
+			return wruntime.SaveFileDialog(ctx, wruntime.SaveDialogOptions{Title: "Save image", DefaultFilename: name, CanCreateDirectories: true})
+		},
+		Copy: imagefile.Pasteboard,
+	})
 
 	go func() {
 		// Media cleanup once a day.
@@ -304,11 +316,8 @@ func Run(assets embed.FS) error {
 			OnSecondInstanceLaunch: func(options.SecondInstanceData) { show() },
 		},
 		AssetServer: &assetserver.Options{
-			Assets: assets,
-			Handler: system.FileHandler{MediaDir: paths.MediaDir(), RepoDir: func(id string) (string, bool) {
-				a, err := st.Agent(id)
-				return a.RepoPath, err == nil
-			}},
+			Assets:  assets,
+			Handler: files,
 		},
 		OnStartup: func(ctx context.Context) {
 			ctxMu.Lock()
