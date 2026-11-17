@@ -541,7 +541,7 @@ func (c *Client) DownloadRef(ctx context.Context, ref []byte) ([]byte, error) {
 	}
 	data, err := cli.Download(ctx, d)
 	if errors.Is(err, whatsmeow.ErrMediaDownloadFailedWith404) || errors.Is(err, whatsmeow.ErrMediaDownloadFailedWith410) {
-		return nil, errors.New("WhatsApp no longer has this file; it may be on the phone only")
+		return nil, ErrMediaExpired
 	}
 	return data, err
 }
@@ -626,6 +626,9 @@ func (c *Client) LookupPhone(ctx context.Context, digits string) (string, error)
 
 // ErrNoPicture is returned by ProfilePicture when there is none to show.
 var ErrNoPicture = errors.New("no profile picture")
+
+// ErrMediaExpired: WhatsApp's servers no longer have the file. It may still be on a phone that kept it.
+var ErrMediaExpired = errors.New("WhatsApp no longer has this file (WhatsApp deletes media from its servers after a while); it may still be on the phone")
 
 // ProfilePicture returns the URL and ID of a chat's picture (preview size). With the current
 // ID passed as existingID, an unchanged picture returns "" and the same ID.

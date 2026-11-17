@@ -35,6 +35,10 @@ type Backend interface {
 	ReplyFromClaude(ctx context.Context, chat, quotedID, text string) (app.ChatMessageDTO, error)
 	// SendFileFromClaude sends a file as the owner. It never starts a run.
 	SendFileFromClaude(ctx context.Context, in app.SendFileDTO) (app.ChatMessageDTO, error)
+	// MessageFile returns a message and its media file on this Mac, downloading it when needed.
+	MessageFile(ctx context.Context, chat, id string) (app.ChatMessageDTO, string, error)
+	// TranscribeMessage returns a voice note's transcript, transcribing it when it has none.
+	TranscribeMessage(ctx context.Context, chat, id, lang string) (string, error)
 }
 
 // Options configure a Server.
@@ -46,6 +50,8 @@ type Options struct {
 	// SessionTimeout closes a session unused for this long, default 24 hours. Claude Code does not
 	// close its session when it exits, so without a timeout every session would stay forever.
 	SessionTimeout time.Duration
+	// UserHome is the folder downloads and exports must stay inside; "" = the user's home folder.
+	UserHome string
 }
 
 // Server is Positron's MCP server for Claude Code in other projects. It is off until SetEnabled(true).

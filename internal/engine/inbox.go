@@ -457,3 +457,8 @@ func (e *Engine) MarkChatRead(chat string) error {
 	}
 	return err
 }
+
+// TranscribeFile transcribes an audio file in lang with the installed model.
+func (e *Engine) TranscribeFile(ctx context.Context, path string, lang domain.Language) (string, error) {
+	return e.d.Transcriber.Transcribe(ctx, path, lang)
+}

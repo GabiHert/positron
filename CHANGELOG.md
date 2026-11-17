@@ -11,6 +11,9 @@ a line under **Unreleased** in the same commit.
 - A macOS menu with Edit (copy and paste) and Window → Minimize (⌘M).
 - Photos open inside Positron instead of in Preview: WhatsApp photos and stickers, and the photos and reply images in Activity. The viewer fits the photo to the window; zoom with a pinch, ⌘+ and ⌘− or a double-click, and drag to move around. The arrow keys step through the chat's other photos. Esc or a click outside closes it. Save…, Copy and Open in Preview are in its top bar. A photo not yet downloaded loads only when you open it.
 
+- Claude Code can download WhatsApp media through Positron's tools: `download_whatsapp_media` saves a message's photo, video, audio, voice note, document or sticker to `~/Downloads/Positron` or a folder you name (fetching it from WhatsApp when needed), optionally with the voice note's transcript. `export_whatsapp_chat` writes a chat, a date range or its last messages, to Markdown or JSON, with its media alongside if asked. Files are only written inside your home folder and never replace another file.
+- `read_whatsapp_chat` and `search_whatsapp_messages` now describe each message's media: type, size, file name and whether it can still be downloaded.
+
 ### Changed
 - While the window is closed Positron sends it no updates, and it reloads what it shows when it opens again.
 - New typography, the same as Hadron's: Inter Tight for the interface and headings and Unbounded for the Positron wordmark replace the serif titles and IBM Plex Sans. Code and monospace text use IBM Plex Mono. The fonts are bundled in the app.
