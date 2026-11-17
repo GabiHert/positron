@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Quote } from "../../lib/askContext";
 import { quoteOf, quotesForSelection } from "./askQuotes";
-import { inbox, type Agent, type Chat, type ChatMessage, type InboxChat, type Run } from "../../api";
+import { errText, inbox, type Agent, type Chat, type ChatMessage, type InboxChat, type Run } from "../../api";
 import { plural } from "../../format";
 import { Icon } from "../../components/ui";
 import { AgentPicker } from "./AgentPicker";
@@ -356,6 +356,7 @@ export function Conversation({
             <span className="ellipsis">Ask {info.agentName || "agent"}</span>
           </button>
         )}
+        <NotifyToggle chat={chat} onError={setErr} />
         <AgentPicker info={info} isGroup={chat.isGroup} agents={agents} onAssign={onAssign} />
       </header>
 
@@ -447,5 +448,33 @@ export function Conversation({
         focusKey={focusKey}
       />
     </section>
+  );
+}
+
+/** NotifyToggle mutes a chat in Positron only: no notifications and out of the Dock badge. */
+export function NotifyToggle({ chat, onError }: { chat: InboxChat; onError: (t: string) => void }) {
+  const [off, setOff] = useState(chat.notifyOff);
+  useEffect(() => setOff(chat.notifyOff), [chat.jid, chat.notifyOff]);
+  const label = off ? "Notifications off for this chat in Positron. Turn them on" : "Turn off notifications for this chat in Positron";
+  return (
+    <button
+      type="button"
+      className={off ? "btn btn--sm ib-bell ib-bell--off" : "btn btn--sm ib-bell"}
+      aria-label={label}
+      aria-pressed={off}
+      title={chat.muted ? `${label} (muted on WhatsApp too)` : label}
+      onClick={async () => {
+        const next = !off;
+        setOff(next);
+        try {
+          await inbox.setNotifications(chat.jid, !next);
+        } catch (e) {
+          setOff(!next);
+          onError(errText(e));
+        }
+      }}
+    >
+      <Icon name={off ? "bellOff" : "bell"} size={15} />
+    </button>
   );
 }

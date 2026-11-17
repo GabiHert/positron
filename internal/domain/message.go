@@ -47,7 +47,9 @@ type Message struct {
 	Edited       bool       `json:"edited,omitempty"`
 	Revoked      bool       `json:"revoked,omitempty"` // deleted for everyone
 	History      bool       `json:"history,omitempty"` // came from a history sync, not live
-	FromUI       bool       `json:"fromUi,omitempty"`  // typed by the owner in Positron's own inbox
+	// Offline came in the backlog after (re)connecting. Only known while it arrives; not stored.
+	Offline bool `json:"-"`
+	FromUI  bool `json:"fromUi,omitempty"` // typed by the owner in Positron's own inbox
 	// ViewOnce is a view-once photo, video or voice note. Without MediaRef it is a placeholder:
 	// WhatsApp kept the media on the phone.
 	ViewOnce bool `json:"viewOnce,omitempty"`
@@ -126,6 +128,9 @@ type Chat struct {
 	MutedUntil time.Time `json:"mutedUntil,omitempty"` // zero = not muted
 	Pinned     bool      `json:"pinned,omitempty"`
 	Archived   bool      `json:"archived,omitempty"`
+	// NotifyOff mutes the chat in Positron only: no notifications and out of the Dock badge,
+	// whatever WhatsApp's own mute says.
+	NotifyOff bool `json:"notifyOff,omitempty"`
 
 	// Disappearing messages, as last learned from WhatsApp: the timer in seconds (0 = off), when
 	// it was set (zero when unknown), and whether Positron knows it at all.

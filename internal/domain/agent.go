@@ -131,11 +131,24 @@ type Settings struct {
 	Defaults           AgentDefaults `json:"defaults"`
 	MediaRetentionDays int           `json:"mediaRetentionDays"` // 0 keeps media forever
 	OpenAtLogin        bool          `json:"openAtLogin"`
-	Notify             bool          `json:"notify"`
-	MCPEnabled         bool          `json:"mcpEnabled"` // Claude Code in other projects can use Positron
+	// Notify: a notification when an agent needs the owner (a reply waits for approval, a run failed).
+	Notify bool `json:"notify"`
+	// Message notifications, like WhatsApp's.
+	NotifyMessages bool   `json:"notifyMessages"`
+	NotifyPreview  bool   `json:"notifyPreview"` // show the text; off shows only "New message"
+	NotifySound    bool   `json:"notifySound"`
+	NotifyGroups   string `json:"notifyGroups"` // "all", "mentions" (mentions and replies to the owner) or "off"
+	MCPEnabled     bool   `json:"mcpEnabled"`   // Claude Code in other projects can use Positron
 	// HideDockWhenClosed takes the Dock icon away while the window is closed; the menu bar icon stays.
 	HideDockWhenClosed bool `json:"hideDockWhenClosed"`
 }
+
+// Values of Settings.NotifyGroups.
+const (
+	GroupsAll      = "all"
+	GroupsMentions = "mentions"
+	GroupsOff      = "off"
+)
 
 // DefaultSettings are the settings of a fresh install.
 func DefaultSettings() Settings {
@@ -143,6 +156,10 @@ func DefaultSettings() Settings {
 		Defaults:           AgentDefaults{Mode: ModeApprove, MaxPerHour: 20, WaitSeconds: 8, Prefix: "🤖"},
 		MediaRetentionDays: 30,
 		Notify:             true,
+		NotifyMessages:     true,
+		NotifyPreview:      true,
+		NotifySound:        true,
+		NotifyGroups:       GroupsAll,
 	}
 }
 

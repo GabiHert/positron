@@ -39,10 +39,12 @@ type InboxChatDTO struct {
 	Unread     int    `json:"unread"`
 	Muted      bool   `json:"muted"`
 	MutedUntil int64  `json:"mutedUntil"` // 0 = not muted; far future = forever
-	Pinned     bool   `json:"pinned"`
-	Archived   bool   `json:"archived"`
-	AgentID    string `json:"agentId"` // the agent that answers this chat, "" for none
-	AgentName  string `json:"agentName"`
+	// NotifyOff: muted in Positron only (no notifications, not in the Dock badge).
+	NotifyOff bool   `json:"notifyOff"`
+	Pinned    bool   `json:"pinned"`
+	Archived  bool   `json:"archived"`
+	AgentID   string `json:"agentId"` // the agent that answers this chat, "" for none
+	AgentName string `json:"agentName"`
 	// Disappearing is the chat's disappearing-messages timer in seconds (86400 = 24 hours), 0 when
 	// off or not known yet. Positron's messages carry it, as the phone's do.
 	Disappearing int `json:"disappearing"`

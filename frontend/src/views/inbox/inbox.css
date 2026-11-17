@@ -766,6 +766,8 @@
 .ib-conv__who { flex: 1 1 140px; min-width: 120px; }
 .ib-conv__name, .ib-conv__status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ib-conv__head .ib-ask { flex: none; }
+.ib-bell { flex: none; padding: 6px 8px; color: var(--fg2); }
+.ib-bell--off { color: var(--warn); }
 .ib-agentpick { min-width: 0; max-width: 100%; }
 /* Room for the floating message toolbar above the first message. */
 .ib-msgs__inner { padding-top: 18px; }

@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	qrcode "github.com/skip2/go-qrcode"
@@ -74,8 +75,10 @@ type Incoming struct {
 	FileSize     int64
 	MediaRef     []byte // the media message, for DownloadRef
 	History      bool   // from a history sync: old, never for agents or notifications
-	Status       string // own messages from a history sync: "sent", "delivered", "read", "played"
-	Revoked      bool   // deleted for everyone before Positron saw it
+	// Offline arrived in the backlog WhatsApp delivers after (re)connecting: no notification.
+	Offline bool
+	Status  string // own messages from a history sync: "sent", "delivered", "read", "played"
+	Revoked bool   // deleted for everyone before Positron saw it
 	// ViewOnce: a view-once photo, video or voice note. Without MediaRef it is only a placeholder:
 	// WhatsApp keeps the media on the phone.
 	ViewOnce bool
@@ -91,6 +94,9 @@ type Group struct {
 // Client is the WhatsApp link.
 type Client struct {
 	container *sqlstore.Container
+
+	// offlineSync is true while WhatsApp delivers what came in while Positron was away.
+	offlineSync atomic.Bool
 
 	mu    sync.Mutex
 	cli   *whatsmeow.Client
@@ -310,7 +316,12 @@ func (c *Client) handle(evt any) {
 			*s = State{State: StateConnected, Phone: cli.Store.ID.User, PushName: cli.Store.PushName, Since: time.Now()}
 		})
 		go c.loadGroups()
+	case *events.OfflineSyncPreview:
+		c.offlineSync.Store(e.Total > 0)
+	case *events.OfflineSyncCompleted:
+		c.offlineSync.Store(false)
 	case *events.Disconnected:
+		c.offlineSync.Store(false)
 		c.setState(func(s *State) {
 			if s.State == StateConnected {
 				s.State = StateDisconnected
@@ -333,6 +344,7 @@ func (c *Client) handle(evt any) {
 				c.update(upd)
 			}
 		case in.ID != "" && c.onMessage != nil:
+			in.Offline = in.Offline || c.offlineSync.Load()
 			c.onMessage(in)
 		}
 	case *events.UndecryptableMessage:

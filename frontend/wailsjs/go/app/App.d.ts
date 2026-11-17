@@ -102,6 +102,8 @@ export function OpenImageInPreview(arg1:string):Promise<void>;
 
 export function OpenMedia(arg1:string,arg2:string):Promise<void>;
 
+export function OpenNotificationSettings():Promise<void>;
+
 export function OpenRepoInClaude(arg1:string):Promise<void>;
 
 export function React(arg1:string,arg2:string,arg3:string):Promise<app.ChatMessageDTO>;
@@ -141,6 +143,8 @@ export function SendText(arg1:app.SendTextDTO):Promise<app.ChatMessageDTO>;
 export function SendVoice(arg1:app.SendVoiceDTO):Promise<app.ChatMessageDTO>;
 
 export function SetActiveChat(arg1:string):Promise<void>;
+
+export function SetChatNotifications(arg1:string,arg2:boolean):Promise<void>;
 
 export function SetMCPEnabled(arg1:boolean):Promise<app.MCPStatusDTO>;
 

@@ -240,6 +240,8 @@ export function SettingsView({ status, setStatus }: { status: Status | null; set
           </section>
         )}
 
+        {settings && <NotificationsCard settings={settings} update={update} />}
+
         {settings && (
           <section className="card section" aria-labelledby="s-app">
             <h2 id="s-app" className="section__title">
@@ -259,7 +261,6 @@ export function SettingsView({ status, setStatus }: { status: Status | null; set
               title="Hide the Dock icon while the window is closed"
               help="Positron stays in the menu bar. Open it again from there, or by opening the app."
             />
-            <Check id="a-notify" checked={settings.notify} onChange={(v) => update({ ...settings, notify: v })} title="Notify me when a reply needs approval" />
             <div className="section__foot">
               <span className="muted small">Positron {status?.version || ""}</span>
             </div>
@@ -629,5 +630,72 @@ function ModelRow({ m, onError }: { m: SpeechModel; onError: (s: string) => void
       )}
       {m.error && <span className="error-text">{m.error}</span>}
     </div>
+  );
+}
+
+/** NotificationsCard: WhatsApp message notifications, like WhatsApp's, and agents that need the owner. */
+export function NotificationsCard({ settings, update }: { settings: Settings; update: (s: Settings) => void }) {
+  const msgs = settings.notifyMessages;
+  return (
+    <section className="card section" aria-labelledby="s-notify">
+      <h2 id="s-notify" className="section__title">
+        Notifications
+      </h2>
+      {settings.notifyBlocked && (
+        <div className="row row--center" role="alert">
+          <span className="error-text small grow">macOS has notifications turned off for Positron, so none of these show.</span>
+          <button type="button" className="btn btn--sm" onClick={() => void api.openNotificationSettings().catch(() => {})}>
+            Open Notification Settings
+          </button>
+        </div>
+      )}
+      <Check
+        id="n-messages"
+        checked={msgs}
+        onChange={(v) => update({ ...settings, notifyMessages: v })}
+        title="New WhatsApp messages"
+        help="One notification per chat; more messages show as “3 new messages”. Never for your own messages, the chat you have open, chats muted on WhatsApp or in Positron, archived chats, or the backlog after reconnecting. Click one to open the chat."
+      />
+      <Check
+        id="n-preview"
+        checked={settings.notifyPreview}
+        disabled={!msgs}
+        onChange={(v) => update({ ...settings, notifyPreview: v })}
+        title="Show a preview"
+        help="Off shows only the chat's name and “New message”."
+      />
+      <div className="field">
+        <label htmlFor="n-groups" className="field__label">
+          Group chats
+        </label>
+        <select
+          id="n-groups"
+          className="input"
+          disabled={!msgs}
+          value={settings.notifyGroups || "all"}
+          onChange={(e) => update({ ...settings, notifyGroups: e.target.value })}
+        >
+          <option value="all">Every message</option>
+          <option value="mentions">Only when I'm mentioned or replied to</option>
+          <option value="off">Never</option>
+        </select>
+      </div>
+      <Check
+        id="n-sound"
+        checked={settings.notifySound}
+        onChange={(v) => update({ ...settings, notifySound: v })}
+        title="Play a sound"
+      />
+      <Check
+        id="a-notify"
+        checked={settings.notify}
+        onChange={(v) => update({ ...settings, notify: v })}
+        title="When an agent needs me"
+        help="A reply waits for your approval, or a run failed. These open Activity and are grouped apart from messages."
+      />
+      <p className="muted small">
+        To mute one chat in Positron only, use the bell at the top of the chat. macOS decides how banners look: System Settings → Notifications → Positron.
+      </p>
+    </section>
   );
 }

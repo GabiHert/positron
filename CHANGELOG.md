@@ -13,6 +13,9 @@ a line under **Unreleased** in the same commit.
 
 - Claude Code can download WhatsApp media through Positron's tools: `download_whatsapp_media` saves a message's photo, video, audio, voice note, document or sticker to `~/Downloads/Positron` or a folder you name (fetching it from WhatsApp when needed), optionally with the voice note's transcript. `export_whatsapp_chat` writes a chat, a date range or its last messages, to Markdown or JSON, with its media alongside if asked. Files are only written inside your home folder and never replace another file.
 - `read_whatsapp_chat` and `search_whatsapp_messages` now describe each message's media: type, size, file name and whether it can still be downloaded.
+- Notifications for new WhatsApp messages, like WhatsApp's: one per chat ("3 new messages" when more arrive), titled "Ana" or "Ana @ Family", with the chat's picture when Positron has it. Clicking opens the chat, also when the window is closed. None for your own messages, the chat you have open, chats muted on WhatsApp, archived chats, or the backlog after reconnecting. Settings → Notifications turns them on or off and sets the preview, the sound, and group chats (every message, only mentions and replies to you, or never). The new bell at the top of a chat mutes it in Positron only, which also leaves it out of the Dock badge.
+- Notifications when an agent needs you (a reply waits for approval, or a run failed) have their own switch, are grouped apart from messages, and open Activity.
+- Settings says when macOS has notifications turned off for Positron and opens the right page in System Settings.
 
 ### Changed
 - While the window is closed Positron sends it no updates, and it reloads what it shows when it opens again.

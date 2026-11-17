@@ -161,7 +161,11 @@ type settingsIn struct {
 	DefaultPrefix      *string `json:"defaultPrefix,omitempty"`
 	MediaRetentionDays *int    `json:"mediaRetentionDays,omitempty" jsonschema:"delete photos and voice notes older than this; 0 keeps them"`
 	OpenAtLogin        *bool   `json:"openAtLogin,omitempty"`
-	Notify             *bool   `json:"notify,omitempty" jsonschema:"notify when a reply needs approval"`
+	Notify             *bool   `json:"notify,omitempty" jsonschema:"notify when an agent needs the owner: a reply waits for approval or a run failed"`
+	NotifyMessages     *bool   `json:"notifyMessages,omitempty" jsonschema:"notify about new WhatsApp messages"`
+	NotifyPreview      *bool   `json:"notifyPreview,omitempty" jsonschema:"show the message text in notifications"`
+	NotifySound        *bool   `json:"notifySound,omitempty" jsonschema:"play a sound with notifications"`
+	NotifyGroups       *string `json:"notifyGroups,omitempty" jsonschema:"group chats: all, mentions (only when the owner is mentioned or replied to) or off"`
 }
 
 type boardQueryIn struct {
@@ -894,6 +898,10 @@ func (s *Server) mcpServer() *mcp.Server {
 			set(&st.MediaRetentionDays, in.MediaRetentionDays)
 			set(&st.OpenAtLogin, in.OpenAtLogin)
 			set(&st.Notify, in.Notify)
+			set(&st.NotifyMessages, in.NotifyMessages)
+			set(&st.NotifyPreview, in.NotifyPreview)
+			set(&st.NotifySound, in.NotifySound)
+			set(&st.NotifyGroups, in.NotifyGroups)
 			if err := b.SaveSettings(st); err != nil {
 				return nil, err
 			}

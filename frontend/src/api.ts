@@ -164,6 +164,12 @@ export type Settings = {
   mediaRetentionDays: number;
   openAtLogin: boolean;
   notify: boolean;
+  notifyMessages: boolean;
+  notifyPreview: boolean;
+  notifySound: boolean;
+  notifyGroups: "all" | "mentions" | "off" | string;
+  /** read only: macOS has notifications off for Positron */
+  notifyBlocked: boolean;
   mcpEnabled: boolean;
   hideDockWhenClosed: boolean;
   mediaDir: string;
@@ -232,6 +238,7 @@ export const api = {
   downloadSpeechModel: (lang: string) => A.DownloadSpeechModel(lang),
   cancelSpeechDownload: (lang: string) => A.CancelSpeechDownload(lang),
   showMediaFolder: () => A.ShowMediaFolder(),
+  openNotificationSettings: () => A.OpenNotificationSettings(),
   /** asks where to save a copy of an image Positron shows; "" when cancelled */
   saveImage: (src: string, name: string) => A.SaveImage(src, name) as Promise<string>,
   copyImage: (src: string) => A.CopyImage(src),
@@ -537,6 +544,8 @@ export type InboxChat = {
   unread: number;
   muted: boolean;
   mutedUntil: number;
+  /** muted in Positron only: no notifications, not in the Dock badge */
+  notifyOff: boolean;
   pinned: boolean;
   archived: boolean;
   agentId: string;
@@ -784,6 +793,7 @@ export const inbox = {
   /** returns at once; watch inboxEvents.history */
   loadOlder: (chat: string) => A.LoadOlder(chat),
   setTyping: (chat: string, on: boolean) => A.SetTyping(chat, on),
+  setNotifications: (chat: string, on: boolean) => A.SetChatNotifications(chat, on),
   /** "" when there is no picture */
   avatar: (jid: string) => A.GetAvatar(jid),
   members: (chat: string) => arr<Member>(A.GroupMembers(chat)),

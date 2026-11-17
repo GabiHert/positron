@@ -33,7 +33,6 @@ const (
 	historyCount   = 50               // messages asked per LoadOlder
 	avatarTTL      = 24 * time.Hour
 	maxFileBytes   = 100 << 20
-	notifyMaxAge   = time.Hour // older messages (a backlog after sleep) don't pop up
 )
 
 type inbox struct {
@@ -82,7 +81,7 @@ func (b *Backend) HandleWAUpdate(u any) {
 func (b *Backend) OnMessage(m domain.Message, change string) {
 	b.emit(app.EventMessage, app.MessageEventDTO{Chat: m.ChatJID, Change: change, Message: b.chatMessageDTO(m)})
 	if change == "new" {
-		b.maybeNotify(m)
+		b.queueNotify(m)
 	}
 }
 
@@ -93,8 +92,8 @@ func (b *Backend) OnUnread(chat string) {
 	if chat != "" {
 		if c, err := b.d.Store.Chat(chat); err == nil {
 			ev.Unread = c.Unread
-			if c.Unread == 0 && b.d.ClearNotification != nil {
-				b.d.ClearNotification(notificationID(chat))
+			if c.Unread == 0 {
+				b.dropNotify(chat)
 			}
 		}
 	}
@@ -124,40 +123,6 @@ func (b *Backend) OnHistory(kind string, added map[string]int) {
 			b.emit(app.EventHistory, app.HistoryEventDTO{Chat: chat, Added: n, Kind: kind})
 		}
 	}
-}
-
-func notificationID(chat string) string { return "chat:" + chat }
-
-func (b *Backend) maybeNotify(m domain.Message) {
-	if m.FromMe || m.History || m.Revoked || b.d.NotifyChat == nil || time.Since(m.At) > notifyMaxAge {
-		return
-	}
-	if !b.d.Store.Settings().Notify {
-		return
-	}
-	c, err := b.d.Store.Chat(m.ChatJID)
-	if err != nil || c.Muted(time.Now()) {
-		return
-	}
-	ib := b.ib()
-	ib.mu.Lock()
-	active := ib.active
-	ib.mu.Unlock()
-	if active == m.ChatJID && b.d.Focused != nil && b.d.Focused() {
-		return
-	}
-	title, subtitle := c.Name, ""
-	if c.IsGroup {
-		subtitle = m.SenderName
-	}
-	if title == "" {
-		title = m.SenderName
-	}
-	body := snippet(m)
-	if body == "" {
-		body = "New message"
-	}
-	b.d.NotifyChat(m.ChatJID, title, subtitle, body)
 }
 
 // snippet is a one-line preview of a message without its sender.
@@ -238,7 +203,7 @@ func (b *Backend) inboxDTO(c domain.Chat, router domain.Router, now time.Time) a
 		JID: c.JID, Name: c.Name, Initials: Initials(c.Name), IsGroup: c.IsGroup, Members: c.Members,
 		AvatarURL: b.cachedAvatar(c.JID), LastAt: ms(c.LastAt), LastID: c.LastID, LastText: c.LastBody,
 		LastKind: string(c.LastKind), LastSender: c.LastSender, LastFromMe: c.LastFromMe,
-		Unread: c.Unread, Muted: c.Muted(now), Pinned: c.Pinned, Archived: c.Archived, Disappearing: c.Disappearing,
+		Unread: c.Unread, Muted: c.Muted(now), NotifyOff: c.NotifyOff, Pinned: c.Pinned, Archived: c.Archived, Disappearing: c.Disappearing,
 	}
 	if d.Name == "" {
 		d.Name = c.JID

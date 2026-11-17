@@ -44,10 +44,11 @@ type Deps struct {
 	Update  *update.Service
 
 	// The inbox's macOS side.
-	Focused           func() bool                              // a Positron window has the keyboard focus
-	NotifyChat        func(chat, title, subtitle, body string) // show a message notification
-	ClearNotification func(id string)                          // take a delivered notification away
-	OnUnreadTotal     func(total int)                          // the Dock badge and menu bar
+	Focused           func() bool              // a Positron window has the keyboard focus
+	NotifyChat        func(n ChatNotification) // show (or replace) a chat's notification
+	NotifyBlocked     func() bool              // macOS said notifications are not allowed
+	ClearNotification func(id string)          // take a delivered notification away
+	OnUnreadTotal     func(total int)          // the Dock badge and menu bar
 }
 
 // LoginItem turns "open at login" on or off.
@@ -72,6 +73,9 @@ type Backend struct {
 
 	inboxOnce  sync.Once
 	inboxState *inbox
+
+	notifyOnce  sync.Once
+	notifyState *notifier
 }
 
 var _ app.Backend = (*Backend)(nil)
@@ -611,7 +615,9 @@ func (b *Backend) GetSettings() app.SettingsDTO {
 		Defaults:           app.DefaultsDTO{Mode: string(s.Defaults.Mode), MaxPerHour: s.Defaults.MaxPerHour, WaitSeconds: s.Defaults.WaitSeconds, Prefix: s.Defaults.Prefix},
 		MediaRetentionDays: s.MediaRetentionDays, OpenAtLogin: s.OpenAtLogin, Notify: s.Notify, MCPEnabled: s.MCPEnabled,
 		HideDockWhenClosed: s.HideDockWhenClosed,
-		MediaDir:           tilde(b.d.Media.Dir), MediaBytes: bytes, MediaFiles: files,
+		NotifyMessages:     s.NotifyMessages, NotifyPreview: s.NotifyPreview, NotifySound: s.NotifySound, NotifyGroups: s.NotifyGroups,
+		NotifyBlocked: b.d.NotifyBlocked != nil && b.d.NotifyBlocked(),
+		MediaDir:      tilde(b.d.Media.Dir), MediaBytes: bytes, MediaFiles: files,
 	}
 }
 
@@ -626,6 +632,7 @@ func (b *Backend) SaveSettings(d app.SettingsDTO) error {
 			WaitSeconds: clamp(d.Defaults.WaitSeconds, 0, 600), Prefix: strings.TrimSpace(d.Defaults.Prefix)},
 		MediaRetentionDays: clamp(d.MediaRetentionDays, 0, 3650), OpenAtLogin: d.OpenAtLogin, Notify: d.Notify,
 		MCPEnabled: d.MCPEnabled, HideDockWhenClosed: d.HideDockWhenClosed,
+		NotifyMessages: d.NotifyMessages, NotifyPreview: d.NotifyPreview, NotifySound: d.NotifySound, NotifyGroups: groupsSetting(d.NotifyGroups),
 	}
 	if s.OpenAtLogin != old.OpenAtLogin && b.d.Login != nil {
 		if err := b.d.Login.Set(s.OpenAtLogin); err != nil {
