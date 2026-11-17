@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { api, errText, on, type Agent, type Message, type Run, type Stats, type Usage } from "../api";
 import { bytes, clock, duration, tokens, usageLine, usd, when } from "../format";
 import { Icon, Pill, SrLabel } from "../components/ui";
+import { openImages } from "../components/ImageViewer";
+
+const baseName = (p: string) => p.split("/").pop() || p;
 
 const emptyStats: Stats = { sent: 0, waiting: 0, quiet: 0, learned: 0, failed: 0, photos: 0, voice: 0, imagesSent: 0 };
 
@@ -214,7 +217,17 @@ function IncomingMessage({ m, chatName, isGroup }: { m: Message; chatName: strin
         {m.mentionsMe && <Pill tone="acc">Mentions you</Pill>}
       </div>
       <div className="msg__body">
-        {m.kind === "image" && m.mediaUrl && <img className="msg__photo" src={m.mediaUrl} alt={m.text ? `Photo: ${m.text}` : "Photo"} />}
+        {m.kind === "image" && m.mediaUrl && (
+          <button
+            type="button"
+            className="photo-btn"
+            title="Open"
+            aria-label={m.text ? `Photo: ${m.text}` : "Photo"}
+            onClick={() => openImages([{ key: m.mediaUrl, src: m.mediaUrl, alt: m.text ? `Photo: ${m.text}` : "Photo", caption: m.text || undefined }])}
+          >
+            <img className="msg__photo" src={m.mediaUrl} alt="" />
+          </button>
+        )}
         {(m.kind === "voice" || m.kind === "audio") && (
           <div className="voice">
             {m.mediaUrl ? (
@@ -292,6 +305,14 @@ function ReplySection({ run }: { run: Run }) {
   const where = run.chatName || "the chat";
   const pending = run.status === "waiting";
   const images = run.images ?? [];
+  // The viewer steps through this reply's images that are still on disk.
+  const openAttachments = (i: number) => {
+    const shown = images.filter((a) => a.url);
+    openImages(
+      shown.map((a) => ({ key: a.path, src: a.url, alt: baseName(a.path), caption: a.path, name: baseName(a.path) })),
+      shown.indexOf(images[i]),
+    );
+  };
   const files = run.files ?? [];
 
   if (run.status === "running") {
@@ -350,9 +371,17 @@ function ReplySection({ run }: { run: Run }) {
       {run.note && run.status !== "quiet" && <span className="muted small">{run.note}</span>}
       {images.length > 0 && (
         <div className="attachments">
-          {images.map((a) => (
+          {images.map((a, i) => (
             <div key={a.path} className="attachment">
-              {a.url ? <img src={a.url} alt="" className="attachment__img" /> : <span className="attachment__img attachment__img--none"><Icon name="image" /></span>}
+              {a.url ? (
+                <button type="button" className="photo-btn" title="Open" aria-label={`Open ${baseName(a.path)}`} onClick={() => openAttachments(i)}>
+                  <img src={a.url} alt="" className="attachment__img" />
+                </button>
+              ) : (
+                <span className="attachment__img attachment__img--none">
+                  <Icon name="image" />
+                </span>
+              )}
               <div className="attachment__text">
                 <span className="mono small ellipsis">{a.path}</span>
                 <span className="muted xsmall">

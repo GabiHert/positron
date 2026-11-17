@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { inbox, inboxEvents, on, useAgents, useStatus, type Agent, type Status, type UnreadEvent } from "./api";
 import { Icon, Logo } from "./components/ui";
+import { ImageViewerHost } from "./components/ImageViewer";
 import { ChatsView } from "./views/ChatsView";
 import { AgentView } from "./views/AgentView";
 import { ActivityPage } from "./views/ActivityPage";
@@ -90,6 +91,7 @@ export function App() {
         {view.name === "new-agent" && <NewAgentView key={view.n} onOpenAgent={openAgent} onCreated={reloadAgents} />}
         {view.name === "settings" && <SettingsView status={status} setStatus={setStatus} />}
       </main>
+      <ImageViewerHost />
     </div>
   );
 }

@@ -9,6 +9,7 @@ a line under **Unreleased** in the same commit.
 - Each agent run records what it used: tokens, how much came from the prompt cache, and the cost at API prices. Activity shows it on every run, and an agent's page shows its total for the last 7 days. Runs from before this version have no usage.
 - Close the window with ⌘W (File → Close Window) or the red button and Positron keeps running in the background: WhatsApp, the agents and the Claude Code connection go on. Open it again from the Dock, the menu bar or by opening the app. ⌘Q quits. A new setting hides the Dock icon while the window is closed.
 - A macOS menu with Edit (copy and paste) and Window → Minimize (⌘M).
+- Photos open inside Positron instead of in Preview: WhatsApp photos and stickers, and the photos and reply images in Activity. The viewer fits the photo to the window; zoom with a pinch, ⌘+ and ⌘− or a double-click, and drag to move around. The arrow keys step through the chat's other photos. Esc or a click outside closes it. Save…, Copy and Open in Preview are in its top bar. A photo not yet downloaded loads only when you open it.
 
 ### Changed
 - While the window is closed Positron sends it no updates, and it reloads what it shows when it opens again.

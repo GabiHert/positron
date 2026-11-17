@@ -112,6 +112,7 @@ type App struct {
 	b           Backend
 	chooseDir   func(ctx context.Context, title string) (string, error)
 	chooseFiles func(ctx context.Context, title string) ([]string, error)
+	images      ImageFiles
 }
 
 // SetFilePicker sets what ChooseFiles opens. It is a function, not a method, so it is not bound to the UI.

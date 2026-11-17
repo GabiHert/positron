@@ -4,6 +4,8 @@ import { errText, inbox, type ChatMessage, type MessageStatus } from "../../api"
 import { bytes, clock, duration } from "../../format";
 import { Confirm, Icon } from "../../components/ui";
 import { canEdit, kindLabel, tone, viewOnceLabel } from "./helpers";
+import { openImages } from "../../components/ImageViewer";
+import { viewerImage } from "./gallery";
 
 export const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
 
@@ -12,6 +14,8 @@ export type BubbleActions = {
   onEdit: (m: ChatMessage) => void;
   onJump: (id: string) => void;
   onError: (text: string) => void;
+  /** open a photo or sticker in the image viewer */
+  onOpenImage?: (m: ChatMessage) => void;
   /** ask the chat's agent about this message; absent when the chat has no agent */
   onAsk?: (m: ChatMessage) => void;
   askLabel?: string;
@@ -106,7 +110,7 @@ export const MessageBubble = memo(function MessageBubble({
                   View once
                 </span>
               )}
-              {m.media && (m.viewOnce ? <ViewOnceView m={m} /> : <MediaView m={m} onError={actions.onError} />)}
+              {m.media && (m.viewOnce ? <ViewOnceView m={m} /> : <MediaView m={m} onError={actions.onError} onOpenImage={actions.onOpenImage} />)}
               {showText && (
                 <span className="ib-b__text">
                   {mentionParts(m.text, m.mentions, members).map((part, i) =>
@@ -267,7 +271,7 @@ function useVisible<T extends Element>(): [React.RefObject<T>, boolean] {
   return [ref, seen];
 }
 
-function MediaView({ m, onError }: { m: ChatMessage; onError: (t: string) => void }) {
+function MediaView({ m, onError, onOpenImage }: { m: ChatMessage; onError: (t: string) => void; onOpenImage?: (m: ChatMessage) => void }) {
   const media = m.media!;
   const [url, setUrl] = useState(media.url);
   const [loading, setLoading] = useState(false);
@@ -304,7 +308,16 @@ function MediaView({ m, onError }: { m: ChatMessage; onError: (t: string) => voi
     }
   };
 
-  if (m.kind === "image" || m.kind === "sticker") return <ImageView m={m} url={url} fetchUrl={fetchUrl} open={open} failed={failed} />;
+  // Photos and stickers open in Positron's own viewer; videos and documents in their macOS app.
+  const view = () => {
+    if (!url && !media.downloadable && !media.thumbUrl) {
+      setFailed(OLD_FILE);
+      return;
+    }
+    if (onOpenImage) onOpenImage(m);
+    else openImages([viewerImage(m)]);
+  };
+  if (m.kind === "image" || m.kind === "sticker") return <ImageView m={m} url={url} fetchUrl={fetchUrl} open={view} failed={failed} />;
 
   if (m.kind === "video") {
     return (
