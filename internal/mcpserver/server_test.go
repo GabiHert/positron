@@ -24,6 +24,7 @@ type fakeBackend struct {
 	agents []app.AgentDTO
 	sent   []string
 	asked  []string
+	media  mediaFake
 }
 
 func (f *fakeBackend) ListChats() []app.ChatDTO   { return f.chats }
