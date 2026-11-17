@@ -5,6 +5,7 @@ import { bytes, clock, duration } from "../../format";
 import { Confirm, Icon } from "../../components/ui";
 import { canEdit, kindLabel, tone, viewOnceLabel } from "./helpers";
 import { openImages } from "../../components/ImageViewer";
+import { VoiceTranscript } from "./VoiceTranscript";
 import { viewerImage } from "./gallery";
 
 export const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
@@ -124,7 +125,7 @@ export const MessageBubble = memo(function MessageBubble({
                   )}
                 </span>
               )}
-              {m.transcript && (m.kind === "voice" || m.kind === "audio") && <span className="ib-b__transcript">“{m.transcript}”</span>}
+              <VoiceTranscript m={m} onError={actions.onError} />
             </>
           )}
           <span className="ib-b__time">

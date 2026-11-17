@@ -161,3 +161,5 @@ export function StartUpdate():Promise<void>;
 export function StopAssistant(arg1:string):Promise<void>;
 
 export function TodayStats():Promise<app.StatsDTO>;
+
+export function TranscribeVoice(arg1:string,arg2:string):Promise<string>;

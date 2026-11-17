@@ -171,6 +171,7 @@ type settingsIn struct {
 	NotifyPreview      *bool   `json:"notifyPreview,omitempty" jsonschema:"show the message text in notifications"`
 	NotifySound        *bool   `json:"notifySound,omitempty" jsonschema:"play a sound with notifications"`
 	NotifyGroups       *string `json:"notifyGroups,omitempty" jsonschema:"group chats: all, mentions (only when the owner is mentioned or replied to) or off"`
+	AutoTranscribe     *string `json:"autoTranscribe,omitempty" jsonschema:"which incoming voice notes are transcribed as they arrive: agents (chats whose agent reads voice notes) or all"`
 }
 
 type boardQueryIn struct {
@@ -938,6 +939,7 @@ func (s *Server) mcpServer() *mcp.Server {
 			set(&st.NotifyPreview, in.NotifyPreview)
 			set(&st.NotifySound, in.NotifySound)
 			set(&st.NotifyGroups, in.NotifyGroups)
+			set(&st.AutoTranscribe, in.AutoTranscribe)
 			if err := b.SaveSettings(st); err != nil {
 				return nil, err
 			}

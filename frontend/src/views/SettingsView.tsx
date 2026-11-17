@@ -105,6 +105,7 @@ export function SettingsView({ status, setStatus }: { status: Status | null; set
             Voice note transcription
           </h2>
           <p className="fg2 small no-margin">Speech models run on this Mac, so voice notes never leave it. Install the languages your chats use.</p>
+          {settings && <AutoTranscribeField settings={settings} update={update} />}
           <div className="models">
             {models.length === 0 && <div className="models__row muted small">Loading the model list…</div>}
             {models.map((m) => (
@@ -697,5 +698,22 @@ export function NotificationsCard({ settings, update }: { settings: Settings; up
         To mute one chat in Positron only, use the bell at the top of the chat. macOS decides how banners look: System Settings → Notifications → Positron.
       </p>
     </section>
+  );
+}
+
+/** AutoTranscribeField: which incoming voice notes Positron transcribes as they arrive. */
+export function AutoTranscribeField({ settings, update }: { settings: Settings; update: (s: Settings) => void }) {
+  const value = settings.autoTranscribe === "all" ? "all" : "agents";
+  return (
+    <div className="field">
+      <label htmlFor="s-autotr" className="field__label">
+        Transcribe incoming voice notes
+      </label>
+      <select id="s-autotr" className="select select--block" value={value} onChange={(e) => update({ ...settings, autoTranscribe: e.target.value })}>
+        <option value="agents">In chats whose agent reads voice notes</option>
+        <option value="all">In every chat</option>
+      </select>
+      <span className="muted small">Any other voice note has a Transcribe button in the chat.</span>
+    </div>
   );
 }

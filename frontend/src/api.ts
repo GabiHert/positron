@@ -170,6 +170,8 @@ export type Settings = {
   notifyGroups: "all" | "mentions" | "off" | string;
   /** read only: macOS has notifications off for Positron */
   notifyBlocked: boolean;
+  /** which incoming voice notes are transcribed as they arrive: "agents" (chats whose agent reads them) or "all" */
+  autoTranscribe: "agents" | "all" | string;
   mcpEnabled: boolean;
   hideDockWhenClosed: boolean;
   mediaDir: string;
@@ -609,6 +611,8 @@ export type ChatMessage = {
   /** body or caption ("" when deleted) */
   text: string;
   transcript: string;
+  /** Positron is transcribing it right now */
+  transcribing: boolean;
   mentions: string[];
   mentionsMe: boolean;
   quoted: Quoted | null;
@@ -800,6 +804,8 @@ export const inbox = {
   setTyping: (chat: string, on: boolean) => A.SetTyping(chat, on),
   /** mutes on WhatsApp, synced to the phone; resolves to when the mute ends (0 = unmuted) */
   mute: (chat: string, length: MuteLength) => A.MuteChat(chat, length) as Promise<number>,
+  /** transcribes a voice note on this Mac (once; later calls return the stored text) */
+  transcribe: (chat: string, id: string) => A.TranscribeVoice(chat, id),
   /** "" when there is no picture */
   avatar: (jid: string) => A.GetAvatar(jid),
   members: (chat: string) => arr<Member>(A.GroupMembers(chat)),

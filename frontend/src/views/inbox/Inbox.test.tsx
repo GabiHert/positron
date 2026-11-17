@@ -67,6 +67,7 @@ const message = (p: Partial<ChatMessage>): ChatMessage => ({
   kind: "text",
   text: "Oi!",
   transcript: "",
+  transcribing: false,
   mentions: [],
   mentionsMe: false,
   quoted: null,

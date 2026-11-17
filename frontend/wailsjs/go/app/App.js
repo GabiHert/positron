@@ -321,3 +321,7 @@ export function StopAssistant(arg1) {
 export function TodayStats() {
   return window['go']['app']['App']['TodayStats']();
 }
+
+export function TranscribeVoice(arg1, arg2) {
+  return window['go']['app']['App']['TranscribeVoice'](arg1, arg2);
+}

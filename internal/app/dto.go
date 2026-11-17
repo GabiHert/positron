@@ -190,9 +190,10 @@ type SettingsDTO struct {
 	NotifyMessages     bool        `json:"notifyMessages"`
 	NotifyPreview      bool        `json:"notifyPreview"`
 	NotifySound        bool        `json:"notifySound"`
-	NotifyGroups       string      `json:"notifyGroups"`  // "all" | "mentions" | "off"
-	NotifyBlocked      bool        `json:"notifyBlocked"` // read only: macOS has notifications off for Positron
-	MCPEnabled         bool        `json:"mcpEnabled"`    // Claude Code in other projects can use Positron
+	NotifyGroups       string      `json:"notifyGroups"`   // "all" | "mentions" | "off"
+	NotifyBlocked      bool        `json:"notifyBlocked"`  // read only: macOS has notifications off for Positron
+	AutoTranscribe     string      `json:"autoTranscribe"` // "agents" | "all": which incoming voice notes are transcribed
+	MCPEnabled         bool        `json:"mcpEnabled"`     // Claude Code in other projects can use Positron
 	HideDockWhenClosed bool        `json:"hideDockWhenClosed"`
 	MediaDir           string      `json:"mediaDir"`   // read only
 	MediaBytes         int64       `json:"mediaBytes"` // read only
