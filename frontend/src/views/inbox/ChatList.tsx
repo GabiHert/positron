@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { inbox, type Chat, type InboxChat, type SearchHit } from "../../api";
 import { Icon, SrLabel } from "../../components/ui";
 import { Avatar } from "./Avatar";
-import { chatPreview, listTime, matchesFilter, messageSnippet, normalize, type ListFilter } from "./helpers";
+import { chatPreview, isMuted, listTime, matchesFilter, messageSnippet, muteLabel, normalize, type ListFilter } from "./helpers";
 
 const ROW = 68; // px, fixed so the list can render only what is on screen
 const OVERSCAN = 6;
@@ -299,8 +299,9 @@ function ChatRow({
   onOpen: () => void;
 }) {
   const unread = c.unread > 0;
+  const muted = isMuted(c);
   const preview = typing || chatPreview(c);
-  const label = [c.name, unread ? `${c.unread} unread` : "", agentName ? `answered by ${agentName}` : "", preview, listTime(c.lastAt)]
+  const label = [c.name, unread ? `${c.unread} unread` : "", muted ? "muted" : "", agentName ? `answered by ${agentName}` : "", preview, listTime(c.lastAt)]
     .filter(Boolean)
     .join(", ");
   return (
@@ -329,8 +330,8 @@ function ChatRow({
         <span className="ib-row__meta">
           <span className="tabular">{listTime(c.lastAt)}</span>
           <span className="ib-row__flags">
-            {c.muted && (
-              <span title="Muted" className="ib-flag">
+            {muted && (
+              <span title={muteLabel(c)} className="ib-flag">
                 <Icon name="muted" size={13} />
               </span>
             )}
@@ -339,7 +340,7 @@ function ChatRow({
                 <Icon name="pin" size={13} />
               </span>
             )}
-            {unread && <span className={c.muted ? "ib-unread ib-unread--muted" : "ib-unread"}>{c.unread > 999 ? "999+" : c.unread}</span>}
+            {unread && <span className={muted ? "ib-unread ib-unread--muted" : "ib-unread"}>{c.unread > 999 ? "999+" : c.unread}</span>}
           </span>
         </span>
       </button>

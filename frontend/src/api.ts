@@ -542,9 +542,11 @@ export type InboxChat = {
   lastFromMe: boolean;
   lastStatus: MessageStatus;
   unread: number;
+  /** muted on WhatsApp now */
   muted: boolean;
+  /** when the WhatsApp mute ends in Unix ms: 0 = not muted, the year 9999 = always */
   mutedUntil: number;
-  /** muted in Positron only: no notifications, not in the Dock badge */
+  /** muted in Positron only (an older setting): no notifications, not in the Dock badge */
   notifyOff: boolean;
   pinned: boolean;
   archived: boolean;
@@ -553,6 +555,9 @@ export type InboxChat = {
   /** disappearing-messages timer in seconds (86400 = 24 hours), 0 when off or not known yet */
   disappearing: number;
 };
+
+/** WhatsApp's mute choices; "off" unmutes. */
+export type MuteLength = "8h" | "1w" | "always" | "off";
 
 export type Quoted = {
   id: string;
@@ -793,7 +798,8 @@ export const inbox = {
   /** returns at once; watch inboxEvents.history */
   loadOlder: (chat: string) => A.LoadOlder(chat),
   setTyping: (chat: string, on: boolean) => A.SetTyping(chat, on),
-  setNotifications: (chat: string, on: boolean) => A.SetChatNotifications(chat, on),
+  /** mutes on WhatsApp, synced to the phone; resolves to when the mute ends (0 = unmuted) */
+  mute: (chat: string, length: MuteLength) => A.MuteChat(chat, length) as Promise<number>,
   /** "" when there is no picture */
   avatar: (jid: string) => A.GetAvatar(jid),
   members: (chat: string) => arr<Member>(A.GroupMembers(chat)),

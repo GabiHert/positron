@@ -94,6 +94,8 @@ export function Logout():Promise<void>;
 
 export function MarkChatRead(arg1:string):Promise<void>;
 
+export function MuteChat(arg1:string,arg2:string):Promise<number>;
+
 export function NewAgent():Promise<app.AgentDTO>;
 
 export function NewAssistantChat(arg1:string,arg2:string):Promise<app.AssistantChatDTO>;
@@ -143,8 +145,6 @@ export function SendText(arg1:app.SendTextDTO):Promise<app.ChatMessageDTO>;
 export function SendVoice(arg1:app.SendVoiceDTO):Promise<app.ChatMessageDTO>;
 
 export function SetActiveChat(arg1:string):Promise<void>;
-
-export function SetChatNotifications(arg1:string,arg2:boolean):Promise<void>;
 
 export function SetMCPEnabled(arg1:boolean):Promise<app.MCPStatusDTO>;
 

@@ -417,6 +417,31 @@ func (e *Engine) EditOwn(ctx context.Context, chat, id, text string) (domain.Mes
 	return saved, nil
 }
 
+// MuteChat mutes the chat until `until` (domain.Forever for always) or, with a zero time, unmutes
+// it. WhatsApp takes it first, so the phone shows the same; Positron stores it once it did.
+// Unmuting also clears the older Positron-only mute.
+func (e *Engine) MuteChat(ctx context.Context, chat string, until time.Time) (domain.Chat, error) {
+	if _, err := e.d.Store.Chat(chat); err != nil {
+		return domain.Chat{}, errors.New("that chat is not known")
+	}
+	mute := !until.IsZero()
+	if err := e.d.WA.SetMute(ctx, chat, mute, until); err != nil {
+		return domain.Chat{}, err
+	}
+	c, err := e.d.Store.UpdateChat(chat, func(c *domain.Chat) {
+		c.MutedUntil = until
+		if !mute {
+			c.NotifyOff = false
+		}
+	})
+	if err != nil {
+		return c, err
+	}
+	e.chatsChanged()
+	e.unread(chat) // the badge leaves muted chats out
+	return c, nil
+}
+
 // MarkChatRead sends read receipts for the chat's unread messages and clears its count.
 func (e *Engine) MarkChatRead(chat string) error {
 	c, err := e.d.Store.Chat(chat)

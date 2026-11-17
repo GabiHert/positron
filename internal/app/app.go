@@ -103,7 +103,7 @@ type Backend interface {
 	SearchMessages(query, chat string, limit int) []SearchHitDTO
 	LoadOlder(chat string) error
 	SetTyping(chat string, on bool)
-	SetChatNotifications(jid string, on bool) error
+	MuteChat(jid, length string) (int64, error)
 	OpenNotificationSettings() error
 	GetAvatar(ctx context.Context, jid string) (string, error)
 }
@@ -273,10 +273,9 @@ func (a *App) OpenMedia(chat, id string) error { return a.b.OpenMedia(a.ctx, cha
 // OpenNotificationSettings opens Positron's page in System Settings → Notifications.
 func (a *App) OpenNotificationSettings() error { return a.b.OpenNotificationSettings() }
 
-// SetChatNotifications mutes (on=false) or unmutes a chat in Positron only.
-func (a *App) SetChatNotifications(jid string, on bool) error {
-	return a.b.SetChatNotifications(jid, on)
-}
+// MuteChat mutes a chat on WhatsApp for "8h", "1w" or "always", or unmutes it with "off". Your
+// phone shows the same. It returns when the mute ends in Unix ms (0 = not muted).
+func (a *App) MuteChat(jid, length string) (int64, error) { return a.b.MuteChat(jid, length) }
 
 // SendText sends a text message as the owner, optionally replying to a message.
 func (a *App) SendText(in SendTextDTO) (ChatMessageDTO, error) { return a.b.SendText(a.ctx, in) }

@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/GabiHert/positron/internal/app"
 	"github.com/GabiHert/positron/internal/domain"
 )
 
@@ -178,19 +177,6 @@ func (b *Backend) dropNotify(chat string) {
 }
 
 func notificationID(chat string) string { return "chat:" + chat }
-
-// SetChatNotifications mutes or unmutes a chat in Positron only (WhatsApp's mute is separate).
-func (b *Backend) SetChatNotifications(jid string, on bool) error {
-	if _, err := b.d.Store.UpdateChat(jid, func(c *domain.Chat) { c.NotifyOff = !on }); err != nil {
-		return err
-	}
-	if !on {
-		b.dropNotify(jid)
-	}
-	b.OnUnread(jid) // the Dock badge leaves muted chats out
-	b.emit(app.EventChats, nil)
-	return nil
-}
 
 // groupsSetting keeps NotifyGroups to its known values; anything else means all groups.
 func groupsSetting(v string) string {

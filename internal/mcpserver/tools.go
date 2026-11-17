@@ -86,6 +86,11 @@ func when(ms int64) string {
 
 // ---- inputs ----
 
+type muteIn struct {
+	Chat string `json:"chat" jsonschema:"the chat: its name, part of it, a phone number or its JID"`
+	For  string `json:"for" jsonschema:"8h, 1w or always to mute; off to unmute"`
+}
+
 type chatIn struct {
 	Chat string `json:"chat" jsonschema:"the chat: its name, part of it, a phone number like +55 51 99999 4412, or its JID"`
 }
@@ -400,11 +405,26 @@ type chatOut struct {
 	AgentID string `json:"agentId,omitempty"`
 	Last    string `json:"last,omitempty"`
 	LastAt  string `json:"lastAt,omitempty"`
+	Muted   string `json:"muted,omitempty"`
 }
 
 func toChat(c app.ChatDTO) chatOut {
 	return chatOut{JID: c.JID, Name: c.Name, IsGroup: c.IsGroup, Members: c.Members, Agent: c.AgentName, AgentID: c.AgentID,
-		Last: c.LastText, LastAt: when(c.LastAt)}
+		Last: c.LastText, LastAt: when(c.LastAt), Muted: muteText(c.MutedUntil, c.NotifyOff)}
+}
+
+// muteText says how a chat is muted: "always", "until 2026-11-18 05:00", "in Positron only",
+// or "" when it isn't.
+func muteText(until int64, positronOnly bool) string {
+	switch {
+	case until > 0 && time.UnixMilli(until).Year() >= 9000: // WhatsApp has no end; Positron stores the year 9999
+		return "always"
+	case until > 0:
+		return "until " + when(until)
+	case positronOnly:
+		return "in Positron only"
+	}
+	return ""
 }
 
 type runOut struct {
@@ -487,7 +507,7 @@ func (s *Server) mcpServer() *mcp.Server {
 
 	// ---- chats ----
 
-	add(srv, read("list_chats", "List the owner's WhatsApp chats and groups, most recent first: jid, name, isGroup, members, the agent handling it, the last message and when."),
+	add(srv, read("list_chats", "List the owner's WhatsApp chats and groups, most recent first: jid, name, isGroup, members, the agent handling it, the last message and when, and how it is muted (always, until a time)."),
 		func(_ context.Context, in listChatsIn) (any, error) {
 			var agentID string
 			if a := strings.TrimSpace(in.Agent); a != "" && !strings.EqualFold(a, "none") {
@@ -753,7 +773,7 @@ func (s *Server) mcpServer() *mcp.Server {
 
 	s.mediaTools(srv, findChat)
 
-	add(srv, read("list_unread_whatsapp_chats", "List the owner's WhatsApp chats with unread messages: name, jid, unread count, the last message and when, whether muted."),
+	add(srv, read("list_unread_whatsapp_chats", "List the owner's WhatsApp chats with unread messages: name, jid, unread count, the last message and when, and how it is muted (always, until a time). Muted chats still count unread messages but send no notifications."),
 		func(context.Context, none) (any, error) {
 			type unread struct {
 				Chat   string `json:"chat"`
@@ -761,7 +781,7 @@ func (s *Server) mcpServer() *mcp.Server {
 				Unread int    `json:"unread"`
 				Last   string `json:"last"`
 				When   string `json:"when"`
-				Muted  bool   `json:"muted,omitempty"`
+				Muted  string `json:"muted,omitempty"`
 			}
 			out := []unread{}
 			for _, c := range b.ListInbox("unread") {
@@ -769,9 +789,25 @@ func (s *Server) mcpServer() *mcp.Server {
 				if c.LastSender != "" {
 					last = c.LastSender + ": " + last
 				}
-				out = append(out, unread{Chat: c.Name, JID: c.JID, Unread: c.Unread, Last: last, When: when(c.LastAt), Muted: c.Muted})
+				out = append(out, unread{Chat: c.Name, JID: c.JID, Unread: c.Unread, Last: last, When: when(c.LastAt), Muted: muteText(c.MutedUntil, c.NotifyOff)})
 			}
 			return out, nil
+		})
+
+	add(srv, write("mute_whatsapp_chat", "Mute or unmute a WhatsApp chat, the same as WhatsApp's mute: for 8h, 1w or always, or off to unmute. It syncs to the owner's phone. A muted chat sends no notifications or sounds; its unread messages still count, and its agent still answers."),
+		func(_ context.Context, in muteIn) (any, error) {
+			c, err := findChat(in.Chat)
+			if err != nil {
+				return nil, err
+			}
+			until, err := b.MuteChat(c.JID, in.For)
+			if err != nil {
+				return nil, err
+			}
+			if m := muteText(until, false); m != "" {
+				return fmt.Sprintf("%s is muted %s.", orJID(c), m), nil
+			}
+			return fmt.Sprintf("%s is unmuted.", orJID(c)), nil
 		})
 
 	add(srv, outward("mark_whatsapp_chat_read", "Mark a WhatsApp chat as read: sends read receipts (blue ticks) for its unread messages and clears its unread count."),

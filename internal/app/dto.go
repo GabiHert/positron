@@ -44,6 +44,10 @@ type ChatDTO struct {
 	Mode      string `json:"mode"`    // the agent's reply mode, "" without an agent
 	ViaAll    bool   `json:"viaAll"`  // the agent has it through "all direct chats"
 	Skipped   bool   `json:"skipped"` // a direct chat the all-direct agent was told to leave alone
+	// MutedUntil is when the chat's WhatsApp mute ends in Unix ms: 0 = not muted, the year 9999
+	// = always.
+	MutedUntil int64 `json:"mutedUntil"`
+	NotifyOff  bool  `json:"notifyOff"` // muted in Positron only (older setting)
 }
 
 // RepoStatsDTO summarizes an agent's knowledge repo.

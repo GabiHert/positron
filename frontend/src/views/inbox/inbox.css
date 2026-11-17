@@ -767,7 +767,10 @@
 .ib-conv__name, .ib-conv__status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ib-conv__head .ib-ask { flex: none; }
 .ib-bell { flex: none; padding: 6px 8px; color: var(--fg2); }
-.ib-bell--off { color: var(--warn); }
+.ib-bell--off { color: var(--fg3-text); }
+.ib-mute { position: relative; flex: none; }
+.ib-conv__muted { display: inline-flex; vertical-align: -1px; margin-left: 6px; color: var(--fg3-text); }
+.ib-menu__title { margin: 0; padding: 6px 10px 6px 30px; font-size: 12.5px; font-weight: 600; color: var(--fg2); }
 .ib-agentpick { min-width: 0; max-width: 100%; }
 /* Room for the floating message toolbar above the first message. */
 .ib-msgs__inner { padding-top: 18px; }

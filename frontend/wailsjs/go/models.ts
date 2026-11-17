@@ -688,6 +688,8 @@ export namespace app {
 	    mode: string;
 	    viaAll: boolean;
 	    skipped: boolean;
+	    mutedUntil: number;
+	    notifyOff: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ChatDTO(source);
@@ -706,6 +708,8 @@ export namespace app {
 	        this.mode = source["mode"];
 	        this.viaAll = source["viaAll"];
 	        this.skipped = source["skipped"];
+	        this.mutedUntil = source["mutedUntil"];
+	        this.notifyOff = source["notifyOff"];
 	    }
 	}
 	export class MediaDTO {

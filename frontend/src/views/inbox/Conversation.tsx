@@ -8,7 +8,8 @@ import { AgentPicker } from "./AgentPicker";
 import { Avatar } from "./Avatar";
 import { Composer, releaseTray, trayFromFiles, type TrayItem } from "./Composer";
 import { DraftCard } from "./DraftCard";
-import { disappearingLabel, groupByDay, lastSeen } from "./helpers";
+import { disappearingLabel, groupByDay, isMuted, lastSeen, muteLabel } from "./helpers";
+import { MuteMenu } from "./MuteMenu";
 import { MessageBubble, type BubbleActions } from "./MessageBubble";
 import { chatGallery } from "./gallery";
 import { openImages } from "../../components/ImageViewer";
@@ -334,7 +335,14 @@ export function Conversation({
       <header className="ib-conv__head">
         <Avatar jid={jid} url={chat.avatarUrl} initials={chat.initials} size={36} />
         <div className="ib-conv__who">
-          <h2 className="ib-conv__name ellipsis">{chat.name}</h2>
+          <h2 className="ib-conv__name ellipsis">
+            {chat.name}
+            {isMuted(chat) && (
+              <span className="ib-conv__muted" title={muteLabel(chat)} aria-label={muteLabel(chat)}>
+                <Icon name="muted" size={13} />
+              </span>
+            )}
+          </h2>
           <span className="ib-conv__line">
             <span className={statusLive ? "ib-conv__status ib-conv__status--live" : "ib-conv__status"}>{status}</span>
             {chat.disappearing > 0 && (
@@ -356,7 +364,7 @@ export function Conversation({
             <span className="ellipsis">Ask {info.agentName || "agent"}</span>
           </button>
         )}
-        <NotifyToggle chat={chat} onError={setErr} />
+        <MuteMenu chat={chat} onError={setErr} />
         <AgentPicker info={info} isGroup={chat.isGroup} agents={agents} onAssign={onAssign} />
       </header>
 
@@ -448,33 +456,5 @@ export function Conversation({
         focusKey={focusKey}
       />
     </section>
-  );
-}
-
-/** NotifyToggle mutes a chat in Positron only: no notifications and out of the Dock badge. */
-export function NotifyToggle({ chat, onError }: { chat: InboxChat; onError: (t: string) => void }) {
-  const [off, setOff] = useState(chat.notifyOff);
-  useEffect(() => setOff(chat.notifyOff), [chat.jid, chat.notifyOff]);
-  const label = off ? "Notifications off for this chat in Positron. Turn them on" : "Turn off notifications for this chat in Positron";
-  return (
-    <button
-      type="button"
-      className={off ? "btn btn--sm ib-bell ib-bell--off" : "btn btn--sm ib-bell"}
-      aria-label={label}
-      aria-pressed={off}
-      title={chat.muted ? `${label} (muted on WhatsApp too)` : label}
-      onClick={async () => {
-        const next = !off;
-        setOff(next);
-        try {
-          await inbox.setNotifications(chat.jid, !next);
-        } catch (e) {
-          setOff(!next);
-          onError(errText(e));
-        }
-      }}
-    >
-      <Icon name={off ? "bellOff" : "bell"} size={15} />
-    </button>
   );
 }

@@ -45,6 +45,8 @@ func TestChatAllows(t *testing.T) {
 	noGroups.NotifyGroups = domain.GroupsOff
 	muted := direct
 	muted.MutedUntil = now.Add(time.Hour)
+	always := group
+	always.MutedUntil = domain.Forever
 	mutedPast := direct
 	mutedPast.MutedUntil = now.Add(-time.Hour)
 	silenced := direct
@@ -66,6 +68,7 @@ func TestChatAllows(t *testing.T) {
 		{"open and focused", s, direct, plain, true, false},
 		{"muted on WhatsApp", s, muted, plain, false, false},
 		{"mute ended", s, mutedPast, plain, false, true},
+		{"group muted always, even when mentioned", s, always, mention, false, false},
 		{"muted in Positron", s, silenced, plain, false, false},
 		{"archived", s, archived, plain, false, false},
 		{"read meanwhile", s, read, plain, false, false},
@@ -158,29 +161,18 @@ func TestBurstsBecomeOneNotification(t *testing.T) {
 	}
 }
 
-func TestMuteInPositron(t *testing.T) {
+func TestOlderPositronMuteStaysOutOfTheBadge(t *testing.T) {
 	st, err := store.Open(filepath.Join(t.TempDir(), "db.sqlite"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { st.Close() })
 	_ = st.SaveChat(domain.Chat{JID: "a", Name: "Ana", Unread: 2})
-	_ = st.SaveChat(domain.Chat{JID: "b", Name: "Bia", Unread: 5})
-	var badge []int
-	b := &Backend{d: Deps{Store: st, OnUnreadTotal: func(n int) { badge = append(badge, n) }}}
-	if st.TotalUnread(time.Now()) != 7 {
-		t.Fatal("badge before")
+	_ = st.SaveChat(domain.Chat{JID: "b", Name: "Bia", Unread: 5, NotifyOff: true})
+	if st.TotalUnread(time.Now()) != 2 {
+		t.Fatalf("badge %d", st.TotalUnread(time.Now()))
 	}
-	if err := b.SetChatNotifications("b", false); err != nil {
-		t.Fatal(err)
-	}
-	if c, _ := st.Chat("b"); !c.NotifyOff || badge[len(badge)-1] != 2 {
-		t.Fatalf("after mute: %+v badge %v", c, badge)
-	}
-	_ = b.SetChatNotifications("b", true)
-	if badge[len(badge)-1] != 7 {
-		t.Fatalf("after unmute: badge %v", badge)
-	}
+	b := &Backend{d: Deps{Store: st}}
 	if b.GetSettings().NotifyGroups != domain.GroupsAll {
 		t.Fatal("default groups setting")
 	}

@@ -236,6 +236,25 @@ export function baseName(p: string): string {
 }
 
 /** disappearingLabel names a disappearing-messages timer: "24 hours", "7 days", "90 days"; "" when off. */
+/** isMuted: muted on WhatsApp at now, or in Positron only. */
+export function isMuted(c: Pick<InboxChat, "mutedUntil" | "notifyOff">, now: number = Date.now()): boolean {
+  return c.mutedUntil > now || c.notifyOff;
+}
+
+/** muteLabel says how a chat is muted: "Muted until 05:00", "Muted until Tue 18 Nov, 05:00",
+ * "Muted always", "Muted in Positron only", or "" when it isn't. */
+export function muteLabel(c: Pick<InboxChat, "mutedUntil" | "notifyOff">, now: number = Date.now()): string {
+  if (c.mutedUntil > now) {
+    const end = new Date(c.mutedUntil);
+    if (end.getFullYear() >= 9000) return "Muted always";
+    const time = end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (daysBetween(now, c.mutedUntil) === 0) return `Muted until ${time}`;
+    const day = end.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+    return `Muted until ${day}, ${time}`;
+  }
+  return c.notifyOff ? "Muted in Positron only" : "";
+}
+
 export function disappearingLabel(seconds: number): string {
   if (!seconds || seconds <= 0) return "";
   const hours = Math.round(seconds / 3600);

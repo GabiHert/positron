@@ -20,11 +20,19 @@ import (
 type sent struct{ chat, kind, text string }
 
 type fakeWA struct {
-	mu    sync.Mutex
-	sent  []sent
-	read  map[string][]string // sender -> message IDs marked read
-	seq   int
-	react []string
+	mu      sync.Mutex
+	sent    []sent
+	read    map[string][]string // sender -> message IDs marked read
+	seq     int
+	react   []string
+	mutes   []muteCall
+	muteErr error
+}
+
+type muteCall struct {
+	chat  string
+	mute  bool
+	until time.Time
 }
 
 func (f *fakeWA) Send(_ context.Context, chat string, out whatsapp.Outgoing) (whatsapp.Sent, error) {
@@ -42,6 +50,15 @@ func (f *fakeWA) React(_ context.Context, chat, sender, id, emoji string) error 
 }
 func (f *fakeWA) Revoke(context.Context, string, string) error           { return nil }
 func (f *fakeWA) EditText(context.Context, string, string, string) error { return nil }
+func (f *fakeWA) SetMute(_ context.Context, chat string, mute bool, until time.Time) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.muteErr != nil {
+		return f.muteErr
+	}
+	f.mutes = append(f.mutes, muteCall{chat, mute, until})
+	return nil
+}
 func (f *fakeWA) MarkRead(chat, sender string, ids []string) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

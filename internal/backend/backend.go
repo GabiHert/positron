@@ -162,8 +162,12 @@ func (b *Backend) ListChats() []app.ChatDTO {
 	all, hasAll := router.AllDirect()
 	chats := b.d.Store.Chats()
 	out := make([]app.ChatDTO, 0, len(chats))
+	now := time.Now()
 	for _, c := range chats {
-		d := app.ChatDTO{JID: c.JID, Name: c.Name, IsGroup: c.IsGroup, Members: c.Members, LastText: c.LastText, LastAt: ms(c.LastAt)}
+		d := app.ChatDTO{JID: c.JID, Name: c.Name, IsGroup: c.IsGroup, Members: c.Members, LastText: c.LastText, LastAt: ms(c.LastAt), NotifyOff: c.NotifyOff}
+		if c.Muted(now) {
+			d.MutedUntil = ms(c.MutedUntil)
+		}
 		if a, viaAll, ok := router.Owner(c.JID); ok {
 			d.AgentID, d.AgentName, d.Mode, d.ViaAll = a.ID, a.Name, string(a.Mode), viaAll
 		} else if hasAll && domain.IsDirect(c.JID) && all.Skips(c.JID) {

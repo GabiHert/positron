@@ -36,6 +36,7 @@ type WhatsApp interface {
 	Revoke(ctx context.Context, chat, id string) error
 	EditText(ctx context.Context, chat, id, text string) error
 	MarkRead(chat, sender string, ids []string)
+	SetMute(ctx context.Context, chat string, mute bool, until time.Time) error
 }
 
 // Runner runs an agent.
